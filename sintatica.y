@@ -12,7 +12,7 @@ struct atributos
 	string label;
 	string traducao;
 };
-
+//teste
 int yylex(void);
 void yyerror(string);
 %}
