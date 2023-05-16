@@ -48,6 +48,13 @@ COMANDOS	: COMANDO COMANDOS
 			;
 
 COMANDO 	: E ';'
+			{}
+			//$1	$2	($3 --> 1 + 1);
+			| TK_ID '=' E ';'
+			{
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " +
+														$3.label + ";\n";
+			}
 			;
 
 E 			: E '+' E
@@ -62,8 +69,11 @@ E 			: E '+' E
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_ID
+			{
+				$$.label =  geraIdAleatorio();
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+			}
 			;
-
 %%
 
 #include "lex.yy.c"
