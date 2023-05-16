@@ -7,14 +7,18 @@
 
 using namespace std;
 
+// contador pra gerar ids 
+int contador = 1;
+
 struct atributos
 {
 	string label;
 	string traducao;
 };
-//teste
+//sai
 int yylex(void);
 void yyerror(string);
+string geraIdAleatorio();
 %}
 
 %token TK_NUM
@@ -47,12 +51,15 @@ COMANDO 	: E ';'
 			;
 
 E 			: E '+' E
-			{
-				$$.traducao = $1.traducao + $3.traducao + "\ta = b + c;\n";
+			{					//var3			var4		
+				$$.label = geraIdAleatorio();			
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+														 $1.label + " + " + $3.label + ";\n";
 			}
 			| TK_NUM
 			{
-				$$.traducao = "\ta = " + $1.traducao + ";\n";
+				$$.label =  geraIdAleatorio();
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_ID
 			;
@@ -75,3 +82,10 @@ void yyerror( string MSG )
 	cout << MSG << endl;
 	exit (0);
 }				
+
+string geraIdAleatorio(){
+	//ai professor, ta muito difícil
+	return "var" + to_string(contador++);
+}
+
+
