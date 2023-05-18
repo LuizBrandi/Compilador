@@ -15,7 +15,7 @@ struct atributos
 	string label;
 	string traducao;
 };
-//sai
+
 int yylex(void);
 void yyerror(string);
 string geraIdAleatorio();
@@ -27,7 +27,8 @@ string geraIdAleatorio();
 
 %start S
 
-%left '+'
+%left '+' '-'
+%left '*' '/'
 
 %%
 
@@ -44,7 +45,13 @@ BLOCO		: '{' COMANDOS '}'
 			;
 
 COMANDOS	: COMANDO COMANDOS
+			{
+				$$.traducao =  $1.traducao + $2.traducao;
+			}
 			|
+			{
+				$$.traducao = "";
+			}
 			;
 
 COMANDO 	: E ';'
@@ -61,7 +68,25 @@ E 			: E '+' E
 			{					//var3			var4		
 				$$.label = geraIdAleatorio();			
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-														 $1.label + " + " + $3.label + ";\n";
+							$1.label + " + " + $3.label + ";\n";
+			}
+			| E '-' E
+			{
+				$$.label = geraIdAleatorio();			
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+				$1.label + " - " + $3.label + ";\n";
+			}
+			| E '*' E
+			{
+				$$.label = geraIdAleatorio();			
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+				$1.label + " * " + $3.label + ";\n";
+			}
+			| E '/' E
+			{
+				$$.label = geraIdAleatorio();			
+				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+				$1.label + " / " + $3.label + ";\n";
 			}
 			| TK_NUM
 			{
@@ -90,11 +115,10 @@ int main( int argc, char* argv[] )
 void yyerror( string MSG )
 {
 	cout << MSG << endl;
-	exit (0);
+	exit(0);
 }				
 
 string geraIdAleatorio(){
-	//ai professor, ta muito difícil
 	return "var" + to_string(contador++);
 }
 
