@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+#include <cstdlib>
 
 #define YYSTYPE atributos
 
@@ -16,9 +18,48 @@ struct atributos
 	string traducao;
 };
 
+typedef struct{
+	string varName;
+	string type;
+} SYMBOL_TYPE;
 
 
+void insertElement(unordered_map<string, SYMBOL_TYPE>& hash, string key, SYMBOL_TYPE value){
+    hash[key] = value;
+}
 
+void removeElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
+        if(hash.find(key) == hash.end()){
+            cout << "O elemento não existe ou ja foi removido." << endl;
+        }
+        hash.erase(key);
+}
+
+void findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
+        if(hash.find(key) == hash.end()){
+            cout << "O elemento nao existe ou ja foi removido." << endl;
+        }else{
+            cout << "O elemento esta na hash" << endl;
+        }
+}
+
+SYMBOL_TYPE returnElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
+    auto iter = hash.find(key);
+    if(iter != hash.end()){
+        return iter->second;
+    } else{
+        cout << "O elemento não existe ou ja foi removido." << endl;
+        exit(1);
+    }
+}
+
+void printHash(unordered_map<string, SYMBOL_TYPE> hash){
+        for(auto& x: hash){
+            std::cout << x.first << " " << x.second.varName << " " << x.second.type << endl;
+    }
+}
+
+unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
 
 int yylex(void);
 void yyerror(string);
@@ -59,7 +100,16 @@ COMANDOS	: COMANDO COMANDOS
 			;
 
 COMANDO 	: E ';'
-			{}
+			| TK_TIPO_INT TK_ID ';'
+			{
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "int";
+				insertElement(SYMBOL_TABLE, $2.label, value);
+
+				$$.traducao = "";
+				$$.label = "";
+			}		
 			//$1	$2	($3 --> 1 + 1);
 			| TK_ID '=' E ';'
 			{
@@ -99,6 +149,8 @@ E 			: E '+' E
 			}
 			| TK_ID
 			{
+				bool encontrei = false;
+				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
 				$$.label =  geraIdAleatorio();
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}

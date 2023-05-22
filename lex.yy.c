@@ -454,9 +454,8 @@ char *yytext;
 #line 1 "lexica.l"
 #line 2 "lexica.l"
 #include <string>
-
+#line 458 "lex.yy.c"
 #line 459 "lex.yy.c"
-#line 460 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -673,10 +672,10 @@ YY_DECL
 		}
 
 	{
-#line 16 "lexica.l"
+#line 15 "lexica.l"
 
 
-#line 680 "lex.yy.c"
+#line 679 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -736,55 +735,55 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 18 "lexica.l"
+#line 17 "lexica.l"
 {}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 20 "lexica.l"
+#line 19 "lexica.l"
 {}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 22 "lexica.l"
+#line 21 "lexica.l"
 {return TK_MAIN;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 24 "lexica.l"
+#line 23 "lexica.l"
 {return TK_TIPO_INT;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "lexica.l"
+#line 25 "lexica.l"
 { return *yytext; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 "lexica.l"
+#line 27 "lexica.l"
 { return *yytext; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 "lexica.l"
+#line 29 "lexica.l"
 { yylval.label = yytext; return TK_NUM; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 31 "lexica.l"
+#line 30 "lexica.l"
 { yylval.label = yytext; return TK_ID; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 33 "lexica.l"
+#line 32 "lexica.l"
 { *yytext; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 35 "lexica.l"
+#line 34 "lexica.l"
 ECHO;
 	YY_BREAK
-#line 788 "lex.yy.c"
+#line 787 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1789,6 +1788,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 35 "lexica.l"
+#line 34 "lexica.l"
 
 

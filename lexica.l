@@ -1,6 +1,5 @@
 %{
 #include <string>
-
 %}
 
 ESPACO [ \t]
