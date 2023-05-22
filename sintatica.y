@@ -16,6 +16,11 @@ struct atributos
 	string traducao;
 };
 
+typedef struct{
+	string varName;
+	string type;
+ } SYMBOL_TYPE;
+
 int yylex(void);
 void yyerror(string);
 string geraIdAleatorio();
