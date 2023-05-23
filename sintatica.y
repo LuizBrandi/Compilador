@@ -48,9 +48,8 @@ SYMBOL_TYPE returnElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
     if(iter != hash.end()){
         return iter->second;
     } else{
-        cout << "O elemento não existe ou ja foi removido." << endl;
-        exit(1);
-    }
+		return SYMBOL_TYPE();
+	} 
 }
 
 void printHash(unordered_map<string, SYMBOL_TYPE> hash){
@@ -149,10 +148,16 @@ E 			: E '+' E
 			}
 			| TK_ID
 			{
-				bool encontrei = false;
+
+				//procurando elemento na hash
 				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
+
+				if(!($1.label == elemento.varName)){
+					yyerror("Variável não declarada");
+				}
+
 				$$.label =  geraIdAleatorio();
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				$$.traducao = "\t"  + elemento.type + " " + $$.label + " = " + $1.label + ";\n";
 			}
 			;
 %%
