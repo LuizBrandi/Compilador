@@ -49,7 +49,7 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TK_NUM = 258,
+    TK_INT = 258,
     TK_MAIN = 259,
     TK_ID = 260,
     TK_TIPO_INT = 261,
@@ -58,7 +58,7 @@ extern int yydebug;
   };
 #endif
 /* Tokens.  */
-#define TK_NUM 258
+#define TK_INT 258
 #define TK_MAIN 259
 #define TK_ID 260
 #define TK_TIPO_INT 261

@@ -84,7 +84,9 @@ int contador = 1;
 struct atributos
 {
 	string label;
+	string batata;
 	string traducao;
+	string tipo;
 };
 
 typedef struct{
@@ -133,7 +135,7 @@ int yylex(void);
 void yyerror(string);
 string geraIdAleatorio();
 
-#line 137 "y.tab.c"
+#line 139 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -181,7 +183,7 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TK_NUM = 258,
+    TK_INT = 258,
     TK_MAIN = 259,
     TK_ID = 260,
     TK_TIPO_INT = 261,
@@ -190,7 +192,7 @@ extern int yydebug;
   };
 #endif
 /* Tokens.  */
-#define TK_NUM 258
+#define TK_INT 258
 #define TK_MAIN 259
 #define TK_ID 260
 #define TK_TIPO_INT 261
@@ -572,8 +574,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    79,    79,    85,    91,    96,   101,   102,   113,   120,
-     126,   132,   138,   144,   149
+       0,    82,    82,    88,    94,    99,   104,   105,   116,   123,
+     129,   135,   141,   147,   155
 };
 #endif
 
@@ -582,7 +584,7 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "TK_NUM", "TK_MAIN", "TK_ID",
+  "$end", "error", "$undefined", "TK_INT", "TK_MAIN", "TK_ID",
   "TK_TIPO_INT", "TK_FIM", "TK_ERROR", "'+'", "'-'", "'*'", "'/'", "'('",
   "')'", "'{'", "'}'", "';'", "'='", "$accept", "S", "BLOCO", "COMANDOS",
   "COMANDO", "E", YY_NULLPTR
@@ -1378,39 +1380,39 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 80 "sintatica.y"
+#line 83 "sintatica.y"
                         {
 				cout << "/*Compilador FOCA*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << yyvsp[0].traducao << "\treturn 0;\n}" << endl; 
 			}
-#line 1386 "y.tab.c"
+#line 1388 "y.tab.c"
     break;
 
   case 3:
-#line 86 "sintatica.y"
+#line 89 "sintatica.y"
                         {
 				yyval.traducao = yyvsp[-1].traducao;
 			}
-#line 1394 "y.tab.c"
+#line 1396 "y.tab.c"
     break;
 
   case 4:
-#line 92 "sintatica.y"
+#line 95 "sintatica.y"
                         {
 				yyval.traducao =  yyvsp[-1].traducao + yyvsp[0].traducao;
 			}
-#line 1402 "y.tab.c"
+#line 1404 "y.tab.c"
     break;
 
   case 5:
-#line 96 "sintatica.y"
+#line 99 "sintatica.y"
                         {
 				yyval.traducao = "";
 			}
-#line 1410 "y.tab.c"
+#line 1412 "y.tab.c"
     break;
 
   case 7:
-#line 103 "sintatica.y"
+#line 106 "sintatica.y"
                         {
 				SYMBOL_TYPE value;
 				value.varName = yyvsp[-1].label;
@@ -1420,86 +1422,90 @@ yyreduce:
 				yyval.traducao = "";
 				yyval.label = "";
 			}
-#line 1424 "y.tab.c"
+#line 1426 "y.tab.c"
     break;
 
   case 8:
-#line 114 "sintatica.y"
+#line 117 "sintatica.y"
                         {
 				yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + yyvsp[-3].label + " = " +
 														yyvsp[-1].label + ";\n";
 			}
-#line 1433 "y.tab.c"
+#line 1435 "y.tab.c"
     break;
 
   case 9:
-#line 121 "sintatica.y"
+#line 124 "sintatica.y"
                         {					//var3			var4		
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 							yyvsp[-2].label + " + " + yyvsp[0].label + ";\n";
 			}
-#line 1443 "y.tab.c"
+#line 1445 "y.tab.c"
     break;
 
   case 10:
-#line 127 "sintatica.y"
+#line 130 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " - " + yyvsp[0].label + ";\n";
 			}
-#line 1453 "y.tab.c"
+#line 1455 "y.tab.c"
     break;
 
   case 11:
-#line 133 "sintatica.y"
+#line 136 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " * " + yyvsp[0].label + ";\n";
 			}
-#line 1463 "y.tab.c"
+#line 1465 "y.tab.c"
     break;
 
   case 12:
-#line 139 "sintatica.y"
+#line 142 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " / " + yyvsp[0].label + ";\n";
 			}
-#line 1473 "y.tab.c"
+#line 1475 "y.tab.c"
     break;
 
   case 13:
-#line 145 "sintatica.y"
+#line 148 "sintatica.y"
                         {
+				yyval.tipo = "int";
+				// cout << $$.label;
 				yyval.label =  geraIdAleatorio();
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
+				// $$.batata = "\t" + $$.tipo + " " + $1.label + ";\n";
 			}
-#line 1482 "y.tab.c"
+#line 1487 "y.tab.c"
     break;
 
   case 14:
-#line 150 "sintatica.y"
+#line 156 "sintatica.y"
                         {
-
+		
 				//procurando elemento na hash
 				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, yyvsp[0].label);
 
 				if(!(yyvsp[0].label == elemento.varName)){
 					yyerror("Variável não declarada");
+					exit(1);
 				}
 
 				yyval.label =  geraIdAleatorio();
-				yyval.traducao = "\t"  + elemento.type + " " + yyval.label + " = " + yyvsp[0].label + ";\n";
+				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 			}
-#line 1499 "y.tab.c"
+#line 1505 "y.tab.c"
     break;
 
 
-#line 1503 "y.tab.c"
+#line 1509 "y.tab.c"
 
       default: break;
     }
@@ -1731,7 +1737,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 163 "sintatica.y"
+#line 170 "sintatica.y"
 
 
 #include "lex.yy.c"

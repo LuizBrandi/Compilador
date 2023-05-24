@@ -15,7 +15,9 @@ int contador = 1;
 struct atributos
 {
 	string label;
+	string batata;
 	string traducao;
+	string tipo;
 };
 
 typedef struct{
@@ -65,9 +67,10 @@ void yyerror(string);
 string geraIdAleatorio();
 %}
 
-%token TK_NUM
+%token TK_INT
 %token TK_MAIN TK_ID TK_TIPO_INT
-%token TK_FIM TK_ERROR
+%token TK_FIM TK_ERROR;
+
 
 %start S
 
@@ -141,23 +144,27 @@ E 			: E '+' E
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 				$1.label + " / " + $3.label + ";\n";
 			}
-			| TK_NUM
+			| TK_INT
 			{
+				$$.tipo = "int";
+				// cout << $$.label;
 				$$.label =  geraIdAleatorio();
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				// $$.batata = "\t" + $$.tipo + " " + $1.label + ";\n";
 			}
 			| TK_ID
 			{
-
+		
 				//procurando elemento na hash
 				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
 
 				if(!($1.label == elemento.varName)){
 					yyerror("Variável não declarada");
+					exit(1);
 				}
 
 				$$.label =  geraIdAleatorio();
-				$$.traducao = "\t"  + elemento.type + " " + $$.label + " = " + $1.label + ";\n";
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;
 %%
