@@ -4,6 +4,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <cstdlib>
+#include <vector>
 
 #define YYSTYPE atributos
 
@@ -15,7 +16,6 @@ int contador = 1;
 struct atributos
 {
 	string label;
-	string batata;
 	string traducao;
 	string tipo;
 };
@@ -25,6 +25,14 @@ typedef struct{
 	string type;
 } SYMBOL_TYPE;
 
+unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
+
+//vector para temporarias
+vector<SYMBOL_TYPE> tempList;
+
+int yylex(void);
+void yyerror(string);
+string geraIdAleatorio();
 
 void insertElement(unordered_map<string, SYMBOL_TYPE>& hash, string key, SYMBOL_TYPE value){
     hash[key] = value;
@@ -60,16 +68,37 @@ void printHash(unordered_map<string, SYMBOL_TYPE> hash){
     }
 }
 
-unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
+void printList(vector<SYMBOL_TYPE> list){
+	for(int i =0; i < list.size(); i++){
+		cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
+	}
+} 
 
-int yylex(void);
-void yyerror(string);
-string geraIdAleatorio();
+void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
+	cout << "CHEGUEI AQUI\n";
+	SYMBOL_TYPE temp;
+	temp.varName = label;
+	temp.type = tipo;
+	tempList.push_back(temp);
+	cout << "CHEGUEI AQUI\n";
+}
+
+void verificaDeclaracao(string label, string elemento){
+	if(!(label == elemento)){
+		yyerror("Variável não declarada");
+		exit(1);
+	}	
+}
+
+
+
+
 %}
 
-%token TK_INT
-%token TK_MAIN TK_ID TK_TIPO_INT
+%token TK_INT TK_FLOAT
+%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT
 %token TK_FIM TK_ERROR;
+
 
 
 %start S
@@ -81,7 +110,9 @@ string geraIdAleatorio();
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
-				cout << "/*Compilador FOCA*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
+				cout << "/*Compilador FOCA*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n";
+				printList(tempList); 
+				cout << $5.traducao << "\treturn 0;\n}" << endl; 
 			}
 			;
 
@@ -104,9 +135,23 @@ COMANDOS	: COMANDO COMANDOS
 COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
+
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
+				//insere id na tabela de simbolos
+				insertElement(SYMBOL_TABLE, $2.label, value);
+
+				$$.traducao = "";
+				$$.label = "";
+			}
+			| TK_TIPO_FLOAT TK_FLOAT ';'
+			{
+
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "int";
+				//insere id na tabela de simbolos
 				insertElement(SYMBOL_TABLE, $2.label, value);
 
 				$$.traducao = "";
@@ -115,6 +160,7 @@ COMANDO 	: E ';'
 			//$1	$2	($3 --> 1 + 1);
 			| TK_ID '=' E ';'
 			{
+			
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " +
 														$3.label + ";\n";
 			}
@@ -122,6 +168,7 @@ COMANDO 	: E ';'
 
 E 			: E '+' E
 			{					//var3			var4		
+			
 				$$.label = geraIdAleatorio();			
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " + " + $3.label + ";\n";
@@ -147,10 +194,20 @@ E 			: E '+' E
 			| TK_INT
 			{
 				$$.tipo = "int";
-				// cout << $$.label;
 				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, tempList);
+				//
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
-				// $$.batata = "\t" + $$.tipo + " " + $1.label + ";\n";
+
+			}
+			| TK_FLOAT
+			{
+				$$.tipo = "float";
+				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, tempList);
+				//
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+
 			}
 			| TK_ID
 			{
@@ -158,16 +215,13 @@ E 			: E '+' E
 				//procurando elemento na hash
 				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
 
-				if(!($1.label == elemento.varName)){
-					yyerror("Variável não declarada");
-					exit(1);
-				}
-
+				verificaDeclaracao($1.label, elemento.varName);
 				$$.label =  geraIdAleatorio();
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;
 %%
+
 
 #include "lex.yy.c"
 
