@@ -23,6 +23,7 @@ struct atributos
 typedef struct{
 	string varName;
 	string type;
+	string temp;
 } SYMBOL_TYPE;
 
 unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
@@ -75,12 +76,10 @@ void printList(vector<SYMBOL_TYPE> list){
 } 
 
 void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
-	cout << "CHEGUEI AQUI\n";
 	SYMBOL_TYPE temp;
 	temp.varName = label;
 	temp.type = tipo;
 	tempList.push_back(temp);
-	cout << "CHEGUEI AQUI\n";
 }
 
 void verificaDeclaracao(string label, string elemento){
@@ -89,8 +88,6 @@ void verificaDeclaracao(string label, string elemento){
 		exit(1);
 	}	
 }
-
-
 
 
 %}
@@ -135,15 +132,13 @@ COMANDOS	: COMANDO COMANDOS
 COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
-
-				SYMBOL_TYPE value;
-				value.varName = $2.label;
-				value.type = "int";
-				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $2.label, value);
-
-				$$.traducao = "";
-				$$.label = "";
+				$1.label =  "int";
+			 	SYMBOL_TABLE[$2.label].type = $1.label;
+				
+				// RESOLVER!!!!!
+				printHash(SYMBOL_TABLE);
+				$$.traducao = $1.traducao + $2.traducao + "\t" + $1.label +  " " +
+				 			SYMBOL_TABLE[$2.label].temp + ";\n";
 			}
 			| TK_TIPO_FLOAT TK_FLOAT ';'
 			{
@@ -167,9 +162,14 @@ COMANDO 	: E ';'
 			;
 
 E 			: E '+' E
-			{					//var3			var4		
-			
+			{	
+				cout << $$.label << "\n";			
 				$$.label = geraIdAleatorio();			
+				//procurando elemento na hash
+				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $$.label);
+
+				//value.varName
+				verificaDeclaracao($$.label, elemento.varName);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " + " + $3.label + ";\n";
 			}
@@ -211,12 +211,17 @@ E 			: E '+' E
 			}
 			| TK_ID
 			{
-		
-				//procurando elemento na hash
-				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
-
-				verificaDeclaracao($1.label, elemento.varName);
+				cout << "aaaaa" << "\n";
 				$$.label =  geraIdAleatorio();
+				SYMBOL_TYPE value;
+				value.varName = $1.label;
+				value.temp = $$.label;
+				
+				//insere id na tabela de simbolos
+				insertElement(SYMBOL_TABLE, $1.label, value);
+				//procurando elemento na hash
+				// SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
+				// verificaDeclaracao($1.label, elemento.varName);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;

@@ -35,7 +35,15 @@ void printHash(unordered_map<string, SYMBOL_TYPE> hash){
     }
 }
 
-
+int main(void){
+    unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
+    SYMBOL_TYPE teste;
+    teste.type = "prof";
+    
+    insertElement(teste, "braida", teste);
+    
+    
+}
 
 //inserir
 
