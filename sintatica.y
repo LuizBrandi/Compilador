@@ -11,7 +11,8 @@
 using namespace std;
 
 // contador pra gerar ids 
-int contador = 1;
+int contador = 0;
+
 
 struct atributos
 {
@@ -132,13 +133,17 @@ COMANDOS	: COMANDO COMANDOS
 COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
-				$1.label =  "int";
-			 	SYMBOL_TABLE[$2.label].type = $1.label;
+				SYMBOL_TYPE value;
+				value.varName = $1.label;
+				value.type = "int";
+				value.temp = geraIdAleatorio();
 				
+				//insere id na tabela de simbolos
+				insertElement(SYMBOL_TABLE, $1.label, value);
+				insereTempList(value.temp, value.type, tempList);
 				// RESOLVER!!!!!
-				printHash(SYMBOL_TABLE);
-				$$.traducao = $1.traducao + $2.traducao + "\t" + $1.label +  " " +
-				 			SYMBOL_TABLE[$2.label].temp + ";\n";
+				// printHash(SYMBOL_TABLE);
+				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_FLOAT TK_FLOAT ';'
 			{
@@ -211,18 +216,19 @@ E 			: E '+' E
 			}
 			| TK_ID
 			{
-				cout << "aaaaa" << "\n";
-				$$.label =  geraIdAleatorio();
-				SYMBOL_TYPE value;
-				value.varName = $1.label;
-				value.temp = $$.label;
+				$$.traducao =  "";
+				// cout << "aaaaa" << "\n";
+				// $$.label =  geraIdAleatorio();
+				// SYMBOL_TYPE value;
+				// value.varName = $1.label;
+				// value.temp = $$.label;
 				
-				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $1.label, value);
-				//procurando elemento na hash
-				// SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
-				// verificaDeclaracao($1.label, elemento.varName);
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				// //insere id na tabela de simbolos
+				// insertElement(SYMBOL_TABLE, $1.label, value);
+				// //procurando elemento na hash
+				// // SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
+				// // verificaDeclaracao($1.label, elemento.varName);
+				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;
 %%
