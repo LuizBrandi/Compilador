@@ -143,21 +143,19 @@ COMANDO 	: E ';'
 				//insere id na tabela de simbolos
 				insertElement(SYMBOL_TABLE, $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
-				// RESOLVER!!!!!
-				// printHash(SYMBOL_TABLE);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
-			| TK_TIPO_FLOAT TK_FLOAT ';'
+			| TK_TIPO_FLOAT TK_ID ';'
 			{
-
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
-				value.type = "int";
+				value.type = "float";
+				value.temp = geraIdAleatorio();
+				
 				//insere id na tabela de simbolos
 				insertElement(SYMBOL_TABLE, $2.label, value);
-
-				$$.traducao = "";
-				$$.label = "";
+				insereTempList(value.temp, value.type, tempList);
+				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_ID '=' TK_INT ';'
 			{
@@ -166,10 +164,17 @@ COMANDO 	: E ';'
 														$3.label + ";\n";
 				}else{
 					exit(1);
-				}
-				
+				}	
 			}		
-			//$1	$2	($3 --> 1 + 1);
+			| TK_ID '=' TK_FLOAT ';'
+			{
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+														$3.label + ";\n";
+				}else{
+					exit(1);
+				}	
+			}		
 			| TK_ID '=' E ';'
 			{
 				if(findElement(SYMBOL_TABLE, $1.label)){
@@ -225,7 +230,6 @@ E 			: E '+' E
 				$$.tipo = "int";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
-				//
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 
 			}
@@ -234,7 +238,6 @@ E 			: E '+' E
 				$$.tipo = "float";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
-				//
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 
 			}
