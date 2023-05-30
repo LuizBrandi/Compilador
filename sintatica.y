@@ -47,11 +47,13 @@ void removeElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
         hash.erase(key);
 }
 
-void findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
+bool findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
         if(hash.find(key) == hash.end()){
             cout << "O elemento nao existe ou ja foi removido." << endl;
+			return false;
         }else{
             cout << "O elemento esta na hash" << endl;
+			return true;
         }
 }
 
@@ -134,12 +136,12 @@ COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
 				SYMBOL_TYPE value;
-				value.varName = $1.label;
+				value.varName = $2.label;
 				value.type = "int";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $1.label, value);
+				insertElement(SYMBOL_TABLE, $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
 				// RESOLVER!!!!!
 				// printHash(SYMBOL_TABLE);
@@ -156,11 +158,20 @@ COMANDO 	: E ';'
 
 				$$.traducao = "";
 				$$.label = "";
+			}
+			| TK_ID '=' TK_INT ';'
+			{
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+														$3.label + ";\n";
+				}else{
+					exit(1);
+				}
+				
 			}		
 			//$1	$2	($3 --> 1 + 1);
 			| TK_ID '=' E ';'
 			{
-			
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " +
 														$3.label + ";\n";
 			}
@@ -256,3 +267,4 @@ string geraIdAleatorio(){
 }
 
 
+	
