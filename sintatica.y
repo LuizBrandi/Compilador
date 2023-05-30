@@ -192,18 +192,37 @@ E 			: E '+' E
 				//Colocando na lista de temps
 				SYMBOL_TYPE value;
 				value.varName = $$.label;
-				//Essa atribuição vai ter q ter uma função pra determinar o tipo
-				value.type = "int";
-				value.temp = $$.label;
+
+				/*Essa atribuição vai ter q ter uma função pra determinar o tipo
+				1° caso -> int e int
+				2° caso -> int e float
+				3° caso -> float e int
+				4° caso -> float e float
+				*/
+
+				//1° caso -> int e int					
+				if($1.tipo == "int" && $3.tipo == "int"){
+					$$.tipo = "float";
+					value.type = "int";
+				} 
+				// 2° caso -> int e float
+				if($1.tipo == "float" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+				} 
+				// 3° caso -> float e int
+				if($1.tipo == "int" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+				}
+				// 4° caso -> float e float					
+				if($1.tipo == "float" && $3.tipo == "int" ){
+					$$.tipo = "float";
+					value.type = "float";
+				}
 				
-				insereTempList(value.temp, value.type, tempList);
-
-				cout << $$.label << " " << $1.label << " " << $3.label << " " << "\n";			
-				// //procurando elemento na hash
-				// SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $$.label);
-
-				// //value.varName
-				// verificaDeclaracao($$.label, elemento.varName);
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);		
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " + " + $3.label + ";\n";
 			}
