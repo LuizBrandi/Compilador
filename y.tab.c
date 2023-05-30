@@ -607,7 +607,7 @@ static const yytype_int8 yytranslate[] =
 static const yytype_uint8 yyrline[] =
 {
        0,   111,   111,   119,   125,   130,   135,   136,   150,   162,
-     173,   180,   192,   198,   204,   210,   219,   228
+     173,   184,   205,   211,   217,   223,   232,   241
 };
 #endif
 
@@ -1499,75 +1499,75 @@ yyreduce:
   case 10:
 #line 174 "sintatica.y"
                         {
-				yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + yyvsp[-3].label + " = " +
+				if(findElement(SYMBOL_TABLE, yyvsp[-3].label)){
+					yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + SYMBOL_TABLE[yyvsp[-3].label].temp + " = " +
 														yyvsp[-1].label + ";\n";
+				}else{
+					exit(1);
+				}
 			}
-#line 1506 "y.tab.c"
+#line 1510 "y.tab.c"
     break;
 
   case 11:
-#line 181 "sintatica.y"
+#line 185 "sintatica.y"
                         {	
-				cout << yyval.label << "\n";			
 				yyval.label = geraIdAleatorio();			
-				//procurando elemento na hash
-				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, yyval.label);
+				//Colocando na lista de temps
+				SYMBOL_TYPE value;
+				value.varName = yyval.label;
+				//Essa atribuição vai ter q ter uma função pra determinar o tipo
+				value.type = "int";
+				value.temp = yyval.label;
+				
+				insereTempList(value.temp, value.type, tempList);
 
-				//value.varName
-				verificaDeclaracao(yyval.label, elemento.varName);
+				cout << yyval.label << " " << yyvsp[-2].label << " " << yyvsp[0].label << " " << "\n";			
+				// //procurando elemento na hash
+				// SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $$.label);
+
+				// //value.varName
+				// verificaDeclaracao($$.label, elemento.varName);
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 							yyvsp[-2].label + " + " + yyvsp[0].label + ";\n";
 			}
-#line 1522 "y.tab.c"
+#line 1535 "y.tab.c"
     break;
 
   case 12:
-#line 193 "sintatica.y"
+#line 206 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " - " + yyvsp[0].label + ";\n";
 			}
-#line 1532 "y.tab.c"
+#line 1545 "y.tab.c"
     break;
 
   case 13:
-#line 199 "sintatica.y"
+#line 212 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " * " + yyvsp[0].label + ";\n";
 			}
-#line 1542 "y.tab.c"
+#line 1555 "y.tab.c"
     break;
 
   case 14:
-#line 205 "sintatica.y"
+#line 218 "sintatica.y"
                         {
 				yyval.label = geraIdAleatorio();			
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
 				yyvsp[-2].label + " / " + yyvsp[0].label + ";\n";
 			}
-#line 1552 "y.tab.c"
-    break;
-
-  case 15:
-#line 211 "sintatica.y"
-                        {
-				yyval.tipo = "int";
-				yyval.label =  geraIdAleatorio();
-				insereTempList(yyval.label, yyval.tipo, tempList);
-				//
-				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
-
-			}
 #line 1565 "y.tab.c"
     break;
 
-  case 16:
-#line 220 "sintatica.y"
+  case 15:
+#line 224 "sintatica.y"
                         {
-				yyval.tipo = "float";
+				yyval.tipo = "int";
 				yyval.label =  geraIdAleatorio();
 				insereTempList(yyval.label, yyval.tipo, tempList);
 				//
@@ -1577,8 +1577,21 @@ yyreduce:
 #line 1578 "y.tab.c"
     break;
 
+  case 16:
+#line 233 "sintatica.y"
+                        {
+				yyval.tipo = "float";
+				yyval.label =  geraIdAleatorio();
+				insereTempList(yyval.label, yyval.tipo, tempList);
+				//
+				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
+
+			}
+#line 1591 "y.tab.c"
+    break;
+
   case 17:
-#line 229 "sintatica.y"
+#line 242 "sintatica.y"
                         {
 				yyval.traducao =  "";
 				// cout << "aaaaa" << "\n";
@@ -1594,11 +1607,11 @@ yyreduce:
 				// // verificaDeclaracao($1.label, elemento.varName);
 				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
-#line 1598 "y.tab.c"
+#line 1611 "y.tab.c"
     break;
 
 
-#line 1602 "y.tab.c"
+#line 1615 "y.tab.c"
 
       default: break;
     }
@@ -1830,7 +1843,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 245 "sintatica.y"
+#line 258 "sintatica.y"
 
 
 

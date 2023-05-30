@@ -172,20 +172,33 @@ COMANDO 	: E ';'
 			//$1	$2	($3 --> 1 + 1);
 			| TK_ID '=' E ';'
 			{
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " +
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
 														$3.label + ";\n";
+				}else{
+					exit(1);
+				}
 			}
 			;
 
 E 			: E '+' E
 			{	
-				cout << $$.label << "\n";			
 				$$.label = geraIdAleatorio();			
-				//procurando elemento na hash
-				SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $$.label);
+				//Colocando na lista de temps
+				SYMBOL_TYPE value;
+				value.varName = $$.label;
+				//Essa atribuição vai ter q ter uma função pra determinar o tipo
+				value.type = "int";
+				value.temp = $$.label;
+				
+				insereTempList(value.temp, value.type, tempList);
 
-				//value.varName
-				verificaDeclaracao($$.label, elemento.varName);
+				cout << $$.label << " " << $1.label << " " << $3.label << " " << "\n";			
+				// //procurando elemento na hash
+				// SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $$.label);
+
+				// //value.varName
+				// verificaDeclaracao($$.label, elemento.varName);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " + " + $3.label + ";\n";
 			}
