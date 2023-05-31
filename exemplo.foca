@@ -1,7 +1,7 @@
 int main()
 {	
 	int a;
-	a = 1.5 + 1;
+	a = 1 + 1;
 }
 
 $1.label => 1.5

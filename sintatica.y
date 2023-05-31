@@ -19,6 +19,8 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
+
+	// string caminho['int', 'float'];
 };
 
 typedef struct{
@@ -179,8 +181,17 @@ COMANDO 	: E ';'
 			| TK_ID '=' E ';'
 			{
 				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
-														$3.label + ";\n";
+					SYMBOL_TYPE value = returnElement(SYMBOL_TABLE, $1.label);
+					//Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
+					if(value.type == $3.tipo){
+						$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " 
+						+ $3.label + ";\n";
+					}
+					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
+					else{
+						$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " + 
+						"(" + value.type + ")" + $3.label + ";\n";
+					}
 				}else{
 					exit(1);
 				}
