@@ -140,6 +140,7 @@ COMANDO 	: E ';'
 				value.type = "int";
 				value.temp = geraIdAleatorio();
 				
+				
 				//insere id na tabela de simbolos
 				insertElement(SYMBOL_TABLE, $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
@@ -193,38 +194,62 @@ E 			: E '+' E
 				SYMBOL_TYPE value;
 				value.varName = $$.label;
 
-				/*Essa atribuição vai ter q ter uma função pra determinar o tipo
-				1° caso -> int e int
-				2° caso -> int e float
-				3° caso -> float e int
-				4° caso -> float e float
-				*/
+				int caso = 0;
 
 				//1° caso -> int e int					
 				if($1.tipo == "int" && $3.tipo == "int"){
 					$$.tipo = "float";
 					value.type = "int";
+					caso = 0;
 				} 
-				// 2° caso -> int e float
+				// 2° caso -> float e float
 				if($1.tipo == "float" && $3.tipo == "float" ){
 					$$.tipo = "float";
 					value.type = "float";
+					caso = 0;
 				} 
-				// 3° caso -> float e int
+				// 3° caso -> int e float
 				if($1.tipo == "int" && $3.tipo == "float" ){
 					$$.tipo = "float";
 					value.type = "float";
+					caso = 3;
 				}
-				// 4° caso -> float e float					
+				// 4° caso -> float e int					
 				if($1.tipo == "float" && $3.tipo == "int" ){
 					$$.tipo = "float";
 					value.type = "float";
+					caso = 4;
 				}
 				
 				value.temp = $$.label;				
-				insereTempList(value.temp, value.type, tempList);		
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-							$1.label + " + " + $3.label + ";\n";
+				insereTempList(value.temp, value.type, tempList);
+
+				if(caso == 0){
+					caso = 0;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " + " + $3.label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					SYMBOL_TYPE tempConvert;
+					//----
+					tempConvert.temp = geraIdAleatorio(); 
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + $$.label +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + tempConvert.temp + " = " +  $3.label + " + " + $$.label + ";\n";	
+					$$.label = tempConvert.temp;
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " + " + $3.label + ";\n";	
+				}	
 			}
 			| E '-' E
 			{
