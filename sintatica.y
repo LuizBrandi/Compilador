@@ -135,12 +135,12 @@ COMANDOS	: COMANDO COMANDOS
 COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
+				
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
 				value.temp = geraIdAleatorio();
-				
-				
+
 				//insere id na tabela de simbolos
 				insertElement(SYMBOL_TABLE, $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
@@ -174,7 +174,7 @@ COMANDO 	: E ';'
 														$3.label + ";\n";
 				}else{
 					exit(1);
-				}	
+				}		
 			}		
 			| TK_ID '=' E ';'
 			{
@@ -188,17 +188,15 @@ COMANDO 	: E ';'
 			;
 
 E 			: E '+' E
-			{	
-				$$.label = geraIdAleatorio();			
-				//Colocando na lista de temps
+			{		
+				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
-				value.varName = $$.label;
 
 				int caso = 0;
 
 				//1° caso -> int e int					
 				if($1.tipo == "int" && $3.tipo == "int"){
-					$$.tipo = "float";
+					$$.tipo = "int";
 					value.type = "int";
 					caso = 0;
 				} 
@@ -221,11 +219,11 @@ E 			: E '+' E
 					caso = 4;
 				}
 				
-				value.temp = $$.label;				
-				insereTempList(value.temp, value.type, tempList);
-
+				//1° caso -> int e int		
 				if(caso == 0){
 					caso = 0;
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " + " + $3.label + ";\n";	
 				}
@@ -233,23 +231,39 @@ E 			: E '+' E
 				// conversao int e float
 				if(caso == 3){
 					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
 					SYMBOL_TYPE tempConvert;
-					//----
-					tempConvert.temp = geraIdAleatorio(); 
+					tempConvert.temp = geraIdAleatorio();
 					tempConvert.type = "float";
 					insereTempList(tempConvert.temp, tempConvert.type, tempList);
 					
+					//Criando o label da var que vai receber a conversão
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					
 					$$.traducao = $1.traducao + $3.traducao + 
-					"\t" + $$.label +  " = " + "(float)" + $1.label + ";\n"
-					+ "\t" + tempConvert.temp + " = " +  $3.label + " + " + $$.label + ";\n";	
-					$$.label = tempConvert.temp;
+					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + $$.label + " = " +  $3.label + " + " + tempConvert.temp + ";\n";
 				}
 				// conversao float e int
 				if(caso == 4){
 					caso = 0;
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-							$1.label + " + " + $3.label + ";\n";	
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+					+ "\t" + $$.label + " = " +  $1.label + " + " + tempConvert.temp + ";\n";
 				}	
+
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
 			| E '-' E
 			{
