@@ -12,6 +12,7 @@ using namespace std;
 
 // contador pra gerar ids 
 int contador = 0;
+bool sinalizaConversao = 1;
 
 
 struct atributos
@@ -19,7 +20,6 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
-	bool sinalizaConversao;
 	// string caminho['int', 'float'];
 };
 
@@ -199,28 +199,14 @@ COMANDO 	: E ';'
 			}
 			;
 
-E 			: '(' TK_TIPO_FLOAT ')' E 
-			{
-				$$.tipo = "float";
-				$$.label =  geraIdAleatorio();
-				$$.sinalizaConversao = false;
-				SYMBOL_TYPE tempConvert;
-				tempConvert.temp = $$.label;
-				tempConvert.type = "float";
-				insereTempList(tempConvert.temp, tempConvert.type, tempList);
-
-				$$.traducao = $2.traducao + $4.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $4.label + ";\n";
-				
-
-			}
- 			| E '+' E
+E 			: E '+' E
 			{		
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
 
 				int caso = 0;
 
-			
+		
 				//1° caso -> int e int					
 				if($1.tipo == "int" && $3.tipo == "int"){
 					$$.tipo = "int";
@@ -257,41 +243,53 @@ E 			: '(' TK_TIPO_FLOAT ')' E
 				}
 
 				//AQUI------------
+				//Se não existe conversão explicita, ta liberado converter implicitamente
+				//MAIN:
+				// float a;
+				// a = (float)1 + 1.0;
+			
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n"; //0
+				
+				if(sinalizaConversao == 1){
+					cout << "CHEGOU AQUI\n";
+						// conversao int e float
+					if(caso == 3){
+						caso = 0;
+						//Criando var de conversão implicita  e inserindo na lista de temps
+						SYMBOL_TYPE tempConvert;
+						tempConvert.temp = geraIdAleatorio();
+						tempConvert.type = "float";
+						insereTempList(tempConvert.temp, tempConvert.type, tempList);
+						//Criando o label da var que vai receber a conversão
+						$$.label = geraIdAleatorio();	
+						value.varName = $$.label;
+						
+						$$.traducao = $1.traducao + $3.traducao + 
+						"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+						+ "\t" + $$.label + " = " +  $3.label + " + " + tempConvert.temp + ";\n";
+					}
+					// conversao float e int
+					if(caso == 4){
+						caso = 0;
+						//Criando var de conversão implicita  e inserindo na lista de temps
+						SYMBOL_TYPE tempConvert;
+						tempConvert.temp = geraIdAleatorio();
+						tempConvert.type = "float";
+						insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+						$$.label = geraIdAleatorio();	
+						value.varName = $$.label;
+
+						$$.traducao = $1.traducao + $3.traducao + 
+						"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+						+ "\t" + $$.label + " = " +  $1.label + " + " + tempConvert.temp + ";\n";
+					}	
+					//alterando valor da sinalizacao da conversao
+					if(sinalizaConversao == true) sinalizaConversao = false;	
+					
+				}
 
 				
-
-				// conversao int e float
-				if(caso == 3){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-					//Criando o label da var que vai receber a conversão
-					$$.label = geraIdAleatorio();	
-					value.varName = $$.label;
-					
-					$$.traducao = $1.traducao + $3.traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
-					+ "\t" + $$.label + " = " +  $3.label + " + " + tempConvert.temp + ";\n";
-				}
-				// conversao float e int
-				if(caso == 4){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-
-					$$.label = geraIdAleatorio();	
-					value.varName = $$.label;
-
-					$$.traducao = $1.traducao + $3.traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-					+ "\t" + $$.label + " = " +  $1.label + " + " + tempConvert.temp + ";\n";
-				}	
 
 				value.temp = $$.label;				
 				insereTempList(value.temp, value.type, tempList);
@@ -529,6 +527,22 @@ E 			: '(' TK_TIPO_FLOAT ')' E
 
 				value.temp = $$.label;				
 				insereTempList(value.temp, value.type, tempList);
+			}
+			| '(' TK_TIPO_FLOAT ')' E 
+			{
+				$$.tipo = "float";
+				$$.label =  geraIdAleatorio();
+				//sinalizaConversao comeca true
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
+				sinalizaConversao = 0;
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
+				SYMBOL_TYPE tempConvert;
+				tempConvert.temp = $$.label;
+				tempConvert.type = "float";
+				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+				$$.traducao = $2.traducao + $4.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $4.label + ";\n";
+
 			}
 			| TK_INT
 			{

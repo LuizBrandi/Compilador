@@ -81,6 +81,7 @@ using namespace std;
 
 // contador pra gerar ids 
 int contador = 0;
+bool sinalizaConversao = 1;
 
 
 struct atributos
@@ -88,7 +89,6 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
-	bool sinalizaConversao;
 	// string caminho['int', 'float'];
 };
 
@@ -611,7 +611,7 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,   114,   114,   122,   128,   133,   138,   139,   152,   164,
-     173,   182,   202,   216,   299,   377,   455,   533,   541,   549
+     173,   182,   202,   297,   375,   453,   531,   547,   555,   563
 };
 #endif
 
@@ -667,8 +667,8 @@ static const yytype_int8 yydefact[] =
        0,     0,     0,     0,     1,     0,     0,     5,     2,    17,
       18,    19,     0,     0,     0,     0,     5,     0,     0,     0,
        0,     0,     3,     4,     0,     0,     0,     0,     6,    17,
-      18,    19,     0,     7,     8,     0,    13,    14,    15,    16,
-       9,    10,    11,    12
+      18,    19,     0,     7,     8,     0,    12,    13,    14,    15,
+       9,    10,    11,    16
 };
 
   /* YYPGOTO[NTERM-NUM].  */
@@ -728,7 +728,7 @@ static const yytype_int8 yyr1[] =
 static const yytype_int8 yyr2[] =
 {
        0,     2,     5,     3,     2,     0,     2,     3,     3,     4,
-       4,     4,     4,     3,     3,     3,     3,     1,     1,     1
+       4,     4,     3,     3,     3,     3,     4,     1,     1,     1
 };
 
 
@@ -1540,31 +1540,13 @@ yyreduce:
 
   case 12:
 #line 203 "sintatica.y"
-                        {
-				yyval.tipo = "float";
-				yyval.label =  geraIdAleatorio();
-				yyval.sinalizaConversao = false;
-				SYMBOL_TYPE tempConvert;
-				tempConvert.temp = yyval.label;
-				tempConvert.type = "float";
-				insereTempList(tempConvert.temp, tempConvert.type, tempList);
-
-				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + tempConvert.temp + " = " + "(" + yyval.tipo + ")" + yyvsp[0].label + ";\n";
-				
-
-			}
-#line 1557 "y.tab.c"
-    break;
-
-  case 13:
-#line 217 "sintatica.y"
                         {		
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
 
 				int caso = 0;
 
-			
+		
 				//1° caso -> int e int					
 				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "int"){
 					yyval.tipo = "int";
@@ -1601,50 +1583,62 @@ yyreduce:
 				}
 
 				//AQUI------------
+				//Se não existe conversão explicita, ta liberado converter implicitamente
+				//MAIN:
+				// float a;
+				// a = (float)1 + 1.0;
+			
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n"; //0
+				
+				if(sinalizaConversao == 1){
+					cout << "CHEGOU AQUI\n";
+						// conversao int e float
+					if(caso == 3){
+						caso = 0;
+						//Criando var de conversão implicita  e inserindo na lista de temps
+						SYMBOL_TYPE tempConvert;
+						tempConvert.temp = geraIdAleatorio();
+						tempConvert.type = "float";
+						insereTempList(tempConvert.temp, tempConvert.type, tempList);
+						//Criando o label da var que vai receber a conversão
+						yyval.label = geraIdAleatorio();	
+						value.varName = yyval.label;
+						
+						yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+						"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
+						+ "\t" + yyval.label + " = " +  yyvsp[0].label + " + " + tempConvert.temp + ";\n";
+					}
+					// conversao float e int
+					if(caso == 4){
+						caso = 0;
+						//Criando var de conversão implicita  e inserindo na lista de temps
+						SYMBOL_TYPE tempConvert;
+						tempConvert.temp = geraIdAleatorio();
+						tempConvert.type = "float";
+						insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+						yyval.label = geraIdAleatorio();	
+						value.varName = yyval.label;
+
+						yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+						"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
+						+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " + " + tempConvert.temp + ";\n";
+					}	
+					//alterando valor da sinalizacao da conversao
+					if(sinalizaConversao == true) sinalizaConversao = false;	
+					
+				}
 
 				
-
-				// conversao int e float
-				if(caso == 3){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-					//Criando o label da var que vai receber a conversão
-					yyval.label = geraIdAleatorio();	
-					value.varName = yyval.label;
-					
-					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
-					+ "\t" + yyval.label + " = " +  yyvsp[0].label + " + " + tempConvert.temp + ";\n";
-				}
-				// conversao float e int
-				if(caso == 4){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-
-					yyval.label = geraIdAleatorio();	
-					value.varName = yyval.label;
-
-					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
-					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " + " + tempConvert.temp + ";\n";
-				}	
 
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1644 "y.tab.c"
+#line 1638 "y.tab.c"
     break;
 
-  case 14:
-#line 300 "sintatica.y"
+  case 13:
+#line 298 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1722,11 +1716,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1726 "y.tab.c"
+#line 1720 "y.tab.c"
     break;
 
-  case 15:
-#line 378 "sintatica.y"
+  case 14:
+#line 376 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1804,11 +1798,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1808 "y.tab.c"
+#line 1802 "y.tab.c"
     break;
 
-  case 16:
-#line 456 "sintatica.y"
+  case 15:
+#line 454 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1886,11 +1880,31 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1890 "y.tab.c"
+#line 1884 "y.tab.c"
+    break;
+
+  case 16:
+#line 532 "sintatica.y"
+                        {
+				yyval.tipo = "float";
+				yyval.label =  geraIdAleatorio();
+				//sinalizaConversao comeca true
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
+				sinalizaConversao = 0;
+				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
+				SYMBOL_TYPE tempConvert;
+				tempConvert.temp = yyval.label;
+				tempConvert.type = "float";
+				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + tempConvert.temp + " = " + "(" + yyval.tipo + ")" + yyvsp[0].label + ";\n";
+
+			}
+#line 1904 "y.tab.c"
     break;
 
   case 17:
-#line 534 "sintatica.y"
+#line 548 "sintatica.y"
                         {
 				yyval.tipo = "int";
 				yyval.label =  geraIdAleatorio();
@@ -1898,11 +1912,11 @@ yyreduce:
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 
 			}
-#line 1902 "y.tab.c"
+#line 1916 "y.tab.c"
     break;
 
   case 18:
-#line 542 "sintatica.y"
+#line 556 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
@@ -1910,11 +1924,11 @@ yyreduce:
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 
 			}
-#line 1914 "y.tab.c"
+#line 1928 "y.tab.c"
     break;
 
   case 19:
-#line 550 "sintatica.y"
+#line 564 "sintatica.y"
                         {
 				yyval.traducao =  "";
 				// cout << "aaaaa" << "\n";
@@ -1930,11 +1944,11 @@ yyreduce:
 				// // verificaDeclaracao($1.label, elemento.varName);
 				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
-#line 1934 "y.tab.c"
+#line 1948 "y.tab.c"
     break;
 
 
-#line 1938 "y.tab.c"
+#line 1952 "y.tab.c"
 
       default: break;
     }
@@ -2166,7 +2180,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 566 "sintatica.y"
+#line 580 "sintatica.y"
 
 
 

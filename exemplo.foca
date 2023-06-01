@@ -1,6 +1,10 @@
 int main()
 {	
 	float a;
-	a = (float)1 + 1.0;
+	a = 1 + 1.0;
 }
+
+
+
+
 
