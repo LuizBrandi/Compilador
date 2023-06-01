@@ -12,17 +12,18 @@ REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
 
+
 %%
 
 "\n"		{}
 
 {DELIM} 	{}
 
-"main"		{return TK_MAIN;}
+"main"		{return TK_MAIN; }
 
-"int"		{return TK_TIPO_INT;}
+"int"		{return TK_TIPO_INT; }
 
-"float"     {return TK_TIPO_FLOAT;}
+"float"     {return TK_TIPO_FLOAT; }
 
 [(){}[\];,]	{ return *yytext; }
 

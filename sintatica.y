@@ -1,4 +1,4 @@
-%{
+ %{
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -19,7 +19,7 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
-
+	bool sinalizaConversao;
 	// string caminho['int', 'float'];
 };
 
@@ -99,7 +99,8 @@ void verificaDeclaracao(string label, string elemento){
 
 %token TK_INT TK_FLOAT
 %token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT
-%token TK_FIM TK_ERROR;
+%token TK_FIM TK_ERROR
+%token TK_TIPO
 
 
 
@@ -198,13 +199,28 @@ COMANDO 	: E ';'
 			}
 			;
 
-E 			: E '+' E
+E 			: '(' TK_TIPO_FLOAT ')' E 
+			{
+				$$.tipo = "float";
+				$$.label =  geraIdAleatorio();
+				$$.sinalizaConversao = false;
+				SYMBOL_TYPE tempConvert;
+				tempConvert.temp = $$.label;
+				tempConvert.type = "float";
+				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+				$$.traducao = $2.traducao + $4.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $4.label + ";\n";
+				
+
+			}
+ 			| E '+' E
 			{		
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
 
 				int caso = 0;
 
+			
 				//1° caso -> int e int					
 				if($1.tipo == "int" && $3.tipo == "int"){
 					$$.tipo = "int";
@@ -217,6 +233,7 @@ E 			: E '+' E
 					value.type = "float";
 					caso = 0;
 				} 
+				
 				// 3° caso -> int e float
 				if($1.tipo == "int" && $3.tipo == "float" ){
 					$$.tipo = "float";
@@ -239,6 +256,10 @@ E 			: E '+' E
 							$1.label + " + " + $3.label + ";\n";	
 				}
 
+				//AQUI------------
+
+				
+
 				// conversao int e float
 				if(caso == 3){
 					caso = 0;
@@ -247,7 +268,6 @@ E 			: E '+' E
 					tempConvert.temp = geraIdAleatorio();
 					tempConvert.type = "float";
 					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-					
 					//Criando o label da var que vai receber a conversão
 					$$.label = geraIdAleatorio();	
 					value.varName = $$.label;
