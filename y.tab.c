@@ -626,8 +626,8 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,   113,   113,   121,   127,   132,   137,   138,   151,   163,
-     175,   184,   193,   202,   237,   331,   409,   487,   565,   581,
-     661,   665,   669,   673,   677,   681,   685,   693,   701,   709
+     175,   184,   193,   202,   231,   325,   403,   481,   559,   575,
+     653,   657,   734,   811,   888,   965,   985,   993,  1001,  1009
 };
 #endif
 
@@ -1605,24 +1605,18 @@ yyreduce:
 
 					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
 					else{
-						if(value.type == "bool" || yyvsp[-1].tipo == "bool"){
-							yyerror("Erro de tipo!\n\""  + value.varName + "\" " + "É do tipo " + value.type + " e " + yyvsp[-1].label
-							+ " é do tipo " + yyvsp[-1].tipo);
-						}
-						else{
 							yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + SYMBOL_TABLE[yyvsp[-3].label].temp + " = " + 
-							"(" + value.type + ")" + yyvsp[-1].label + ";\n";
-						}			
+							"(" + value.type + ")" + yyvsp[-1].label + ";\n";			
 					}
 				}else{
 					exit(1);
 				}
 			}
-#line 1622 "y.tab.c"
+#line 1616 "y.tab.c"
     break;
 
   case 14:
-#line 238 "sintatica.y"
+#line 232 "sintatica.y"
                         {		
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1716,11 +1710,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1720 "y.tab.c"
+#line 1714 "y.tab.c"
     break;
 
   case 15:
-#line 332 "sintatica.y"
+#line 326 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1798,11 +1792,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1802 "y.tab.c"
+#line 1796 "y.tab.c"
     break;
 
   case 16:
-#line 410 "sintatica.y"
+#line 404 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1880,11 +1874,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1884 "y.tab.c"
+#line 1878 "y.tab.c"
     break;
 
   case 17:
-#line 488 "sintatica.y"
+#line 482 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -1962,11 +1956,11 @@ yyreduce:
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
 			}
-#line 1966 "y.tab.c"
+#line 1960 "y.tab.c"
     break;
 
   case 18:
-#line 566 "sintatica.y"
+#line 560 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
@@ -1982,13 +1976,12 @@ yyreduce:
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + tempConvert.temp + " = " + "(" + yyval.tipo + ")" + yyvsp[0].label + ";\n";
 
 			}
-#line 1986 "y.tab.c"
+#line 1980 "y.tab.c"
     break;
 
   case 19:
-#line 582 "sintatica.y"
+#line 576 "sintatica.y"
                         {
-
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
 
@@ -2061,64 +2054,371 @@ yyreduce:
 					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
 					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " > " + tempConvert.temp + ";\n";
 				}	
-
 				value.temp = yyval.label;				
 				insereTempList(value.temp, value.type, tempList);
-			
+
+			}
+#line 2062 "y.tab.c"
+    break;
+
+  case 20:
+#line 654 "sintatica.y"
+                        {
+				
 			}
 #line 2070 "y.tab.c"
     break;
 
-  case 20:
-#line 662 "sintatica.y"
-                        {
-
-			}
-#line 2078 "y.tab.c"
-    break;
-
   case 21:
-#line 666 "sintatica.y"
+#line 658 "sintatica.y"
                         {
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "int"){
+					yyval.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "int" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
+							yyvsp[-2].label + " < " + yyvsp[0].label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[0].label + " < " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " < " + tempConvert.temp + ";\n";
+				}	
+				value.temp = yyval.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
-#line 2086 "y.tab.c"
+#line 2151 "y.tab.c"
     break;
 
   case 22:
-#line 670 "sintatica.y"
+#line 735 "sintatica.y"
                         {
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "int"){
+					yyval.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "int" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
+							yyvsp[-2].label + " <= " + yyvsp[0].label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[0].label + " <= " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " <= " + tempConvert.temp + ";\n";
+				}	
+				value.temp = yyval.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
-#line 2094 "y.tab.c"
+#line 2232 "y.tab.c"
     break;
 
   case 23:
-#line 674 "sintatica.y"
+#line 812 "sintatica.y"
                         {
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "int"){
+					yyval.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "int" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
+							yyvsp[-2].label + " == " + yyvsp[0].label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[0].label + " == " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " == " + tempConvert.temp + ";\n";
+				}	
+				value.temp = yyval.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
-#line 2102 "y.tab.c"
+#line 2313 "y.tab.c"
     break;
 
   case 24:
-#line 678 "sintatica.y"
+#line 889 "sintatica.y"
                         {
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "int"){
+					yyval.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if(yyvsp[-2].tipo == "int" && yyvsp[0].tipo == "float" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if(yyvsp[-2].tipo == "float" && yyvsp[0].tipo == "int" ){
+					yyval.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
+							yyvsp[-2].label + " != " + yyvsp[0].label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[-2].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[0].label + " != " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + yyvsp[0].label + ";\n"
+					+ "\t" + yyval.label + " = " +  yyvsp[-2].label + " != " + tempConvert.temp + ";\n";
+				}	
+				value.temp = yyval.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
-#line 2110 "y.tab.c"
+#line 2394 "y.tab.c"
     break;
 
   case 25:
-#line 682 "sintatica.y"
+#line 966 "sintatica.y"
                         {
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+				
+				if(yyvsp[-2].tipo != "int"){
+					yyerror("Não é possível realizar a operação  " + yyvsp[-2].label + " deve ser do tipo \"int\"\n");
+				}else if(yyvsp[0].tipo != "int"){
+					yyerror("Não é possível realizar a operação  " + yyvsp[0].label + " deve ser do tipo \"int\"\n");
+				} else{
+					yyval.label = geraIdAleatorio();	
+					value.varName = yyval.label;
+					value.type =  "int";
+					insereTempList(value.varName, value.type, tempList);
+					yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyval.label +  " = " +
+							yyvsp[-2].label + " % " + yyvsp[0].label + ";\n";
+				}
 			}
-#line 2118 "y.tab.c"
+#line 2418 "y.tab.c"
     break;
 
   case 26:
-#line 686 "sintatica.y"
+#line 986 "sintatica.y"
                         {
 				yyval.tipo = "int";
 				yyval.label =  geraIdAleatorio();
@@ -2126,11 +2426,11 @@ yyreduce:
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 
 			}
-#line 2130 "y.tab.c"
+#line 2430 "y.tab.c"
     break;
 
   case 27:
-#line 694 "sintatica.y"
+#line 994 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
@@ -2138,11 +2438,11 @@ yyreduce:
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 
 			}
-#line 2142 "y.tab.c"
+#line 2442 "y.tab.c"
     break;
 
   case 28:
-#line 702 "sintatica.y"
+#line 1002 "sintatica.y"
                         {
 				yyval.tipo = "bool";
 				cout << "TESTEE " << yyval.tipo;
@@ -2150,11 +2450,11 @@ yyreduce:
 				insereTempList(yyval.label, yyval.tipo, tempList);
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 			}
-#line 2154 "y.tab.c"
+#line 2454 "y.tab.c"
     break;
 
   case 29:
-#line 710 "sintatica.y"
+#line 1010 "sintatica.y"
                         {
 				yyval.traducao =  "";
 				// cout << "aaaaa" << "\n";
@@ -2170,11 +2470,11 @@ yyreduce:
 				// // verificaDeclaracao($1.label, elemento.varName);
 				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
-#line 2174 "y.tab.c"
+#line 2474 "y.tab.c"
     break;
 
 
-#line 2178 "y.tab.c"
+#line 2478 "y.tab.c"
 
       default: break;
     }
@@ -2406,7 +2706,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 726 "sintatica.y"
+#line 1026 "sintatica.y"
 
 
 

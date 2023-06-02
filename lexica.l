@@ -39,7 +39,7 @@ ID {LETRA}({LETRA}|{NUM})*
 
 [(){}[\];,]	{ return *yytext; }
 
-[+\-*/=]		{ return *yytext; }
+[+\-*/=%]		{ return *yytext; }
 
 [<>]		{ return *yytext; }
 

@@ -219,14 +219,8 @@ COMANDO 	: E ';'
 
 					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
 					else{
-						if(value.type == "bool" || $3.tipo == "bool"){
-							yyerror("Erro de tipo!\n\""  + value.varName + "\" " + "É do tipo " + value.type + " e " + $3.label
-							+ " é do tipo " + $3.tipo);
-						}
-						else{
 							$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " + 
-							"(" + value.type + ")" + $3.label + ";\n";
-						}			
+							"(" + value.type + ")" + $3.label + ";\n";			
 					}
 				}else{
 					exit(1);
@@ -580,7 +574,6 @@ E 			: E '+' E
 			}
 			| E '>' E
 			{
-
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
 
@@ -653,34 +646,341 @@ E 			: E '+' E
 					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
 					+ "\t" + $$.label + " = " +  $1.label + " > " + tempConvert.temp + ";\n";
 				}	
-
 				value.temp = $$.label;				
 				insereTempList(value.temp, value.type, tempList);
-			
+
 			}
 			| E TK_GREATER_EQUAL E
 			{
-
+				
 			}
 			| E '<' E
 			{
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if($1.tipo == "int" && $3.tipo == "int"){
+					$$.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if($1.tipo == "float" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if($1.tipo == "int" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if($1.tipo == "float" && $3.tipo == "int" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " < " + $3.label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + $$.label + " = " +  $3.label + " < " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+					+ "\t" + $$.label + " = " +  $1.label + " < " + tempConvert.temp + ";\n";
+				}	
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
 			| E TK_LESS_EQUAL E
 			{
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if($1.tipo == "int" && $3.tipo == "int"){
+					$$.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if($1.tipo == "float" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if($1.tipo == "int" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if($1.tipo == "float" && $3.tipo == "int" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " <= " + $3.label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + $$.label + " = " +  $3.label + " <= " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+					+ "\t" + $$.label + " = " +  $1.label + " <= " + tempConvert.temp + ";\n";
+				}	
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
 			| E TK_EQUAL_EQUAL E
 			{
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if($1.tipo == "int" && $3.tipo == "int"){
+					$$.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if($1.tipo == "float" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if($1.tipo == "int" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if($1.tipo == "float" && $3.tipo == "int" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " == " + $3.label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + $$.label + " = " +  $3.label + " == " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+					+ "\t" + $$.label + " = " +  $1.label + " == " + tempConvert.temp + ";\n";
+				}	
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
 			| E TK_NOT_EQUAL E
 			{
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+
+				//1° caso -> int e int					
+				if($1.tipo == "int" && $3.tipo == "int"){
+					$$.tipo = "int";
+					value.type = "int";
+					caso = 0;
+				} 
+				// 2° caso -> float e float
+				if($1.tipo == "float" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 0;
+				} 
+				// 3° caso -> int e float
+				if($1.tipo == "int" && $3.tipo == "float" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 3;
+				}
+				// 4° caso -> float e int					
+				if($1.tipo == "float" && $3.tipo == "int" ){
+					$$.tipo = "float";
+					value.type = "float";
+					caso = 4;
+				}
+				
+				//1° caso -> int e int		
+				if(caso == 0){
+					caso = 0;
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " != " + $3.label + ";\n";	
+				}
+
+				// conversao int e float
+				if(caso == 3){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+					
+					//Criando o label da var que vai receber a conversão
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+					+ "\t" + $$.label + " = " +  $3.label + " != " + tempConvert.temp + ";\n";
+				}
+				// conversao float e int
+				if(caso == 4){
+					caso = 0;
+					//Criando var de conversão implicita  e inserindo na lista de temps
+					SYMBOL_TYPE tempConvert;
+					tempConvert.temp = geraIdAleatorio();
+					tempConvert.type = "float";
+					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+
+					$$.traducao = $1.traducao + $3.traducao + 
+					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+					+ "\t" + $$.label + " = " +  $1.label + " != " + tempConvert.temp + ";\n";
+				}	
+				value.temp = $$.label;				
+				insereTempList(value.temp, value.type, tempList);
 			}
 			| E '%' E
 			{
+				//criando temporaria que recebera a soma
+				SYMBOL_TYPE value;
 
+				int caso = 0;
+				
+				if($1.tipo != "int"){
+					yyerror("Não é possível realizar a operação  " + $1.label + " deve ser do tipo \"int\"\n");
+				}else if($3.tipo != "int"){
+					yyerror("Não é possível realizar a operação  " + $3.label + " deve ser do tipo \"int\"\n");
+				} else{
+					$$.label = geraIdAleatorio();	
+					value.varName = $$.label;
+					value.type =  "int";
+					insereTempList(value.varName, value.type, tempList);
+					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+							$1.label + " % " + $3.label + ";\n";
+				}
 			}
 			| TK_INT
 			{
