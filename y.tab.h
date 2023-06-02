@@ -64,7 +64,10 @@ extern int yydebug;
     TK_GREATER_EQUAL = 270,
     TK_LESS_EQUAL = 271,
     TK_EQUAL_EQUAL = 272,
-    TK_NOT_EQUAL = 273
+    TK_NOT_EQUAL = 273,
+    TK_AND = 274,
+    TK_OR = 275,
+    TK_NOT = 276
   };
 #endif
 /* Tokens.  */
@@ -84,6 +87,9 @@ extern int yydebug;
 #define TK_LESS_EQUAL 271
 #define TK_EQUAL_EQUAL 272
 #define TK_NOT_EQUAL 273
+#define TK_AND 274
+#define TK_OR 275
+#define TK_NOT 276
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
