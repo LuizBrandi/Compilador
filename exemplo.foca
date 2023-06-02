@@ -1,12 +1,5 @@
 int main()
 {	
 	int a;
-	a = 1.0 > 0;
+	a = 1.0 > 1;
 }
-
-
-
-
-yto passando mal 
-
-vo fazer que nem a jaque na segunda feira

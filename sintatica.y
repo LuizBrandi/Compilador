@@ -97,15 +97,10 @@ void verificaDeclaracao(string label, string elemento){
 
 %}
 
-%token TK_INT TK_FLOAT
+%token TK_INT TK_FLOAT TK_BOOL TK_TIPO_BOOL TK_TRUE TK_FALSE
 %token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT
 %token TK_FIM TK_ERROR
-%token TK_TIPO
-%token TK_GREATER_EQUAL
-%token TK_LESS_EQUAL
-%token TK_EQUAL_EQUAL
-%token TK_NOT_EQUAL
-
+%token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 
 
 %start S
@@ -165,6 +160,18 @@ COMANDO 	: E ';'
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
+			| TK_TIPO_BOOL TK_ID ';'
+			{
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "bool";
+				value.temp = geraIdAleatorio();
+				
+				//insere id na tabela de simbolos
+				insertElement(SYMBOL_TABLE, $2.label, value);
+				insereTempList(value.temp, value.type, tempList);
+				$$.traducao = $1.traducao + $2.traducao;
+			}
 			| TK_ID '=' TK_INT ';'
 			{
 				if(findElement(SYMBOL_TABLE, $1.label)){
@@ -182,20 +189,44 @@ COMANDO 	: E ';'
 				}else{
 					exit(1);
 				}		
-			}		
+			}
+			| TK_ID '=' TK_TRUE ';'
+			{
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+														"true" + ";\n";
+				}else{
+					exit(1);
+				}		
+			}			
 			| TK_ID '=' E ';'
 			{
 				if(findElement(SYMBOL_TABLE, $1.label)){
 					SYMBOL_TYPE value = returnElement(SYMBOL_TABLE, $1.label);
+
 					//Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
-					if(value.type == $3.tipo){
+					if((value.type == $3.tipo)){
 						$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " 
 						+ $3.label + ";\n";
 					}
+									
+					//Acima verificamos se o tipo é igual, se for, não alteramos em nada.
+
+					/*Entretanto, se eles forem diferentes, eu tenho que verificar se o 
+					tipo do primeiro e do segundo é BOOL, se for, atribuimos normalmente, mas
+					se eles não forem BOOL, fazemos a conversão de tipo. 
+					*/
+
 					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
 					else{
-						$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " + 
-						"(" + value.type + ")" + $3.label + ";\n";
+						if(value.type == "bool" || $3.tipo == "bool"){
+							yyerror("Erro de tipo!\n\""  + value.varName + "\" " + "É do tipo " + value.type + " e " + $3.label
+							+ " é do tipo " + $3.tipo);
+						}
+						else{
+							$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " + 
+							"(" + value.type + ")" + $3.label + ";\n";
+						}			
 					}
 				}else{
 					exit(1);
@@ -666,6 +697,14 @@ E 			: E '+' E
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 
+			}
+			| TK_TRUE
+			{
+				$$.tipo = "bool";
+				cout << "TESTEE " << $$.tipo;
+				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, tempList);
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_ID
 			{
