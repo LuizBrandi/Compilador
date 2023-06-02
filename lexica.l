@@ -25,9 +25,20 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "float"     {return TK_TIPO_FLOAT; }
 
+">="        {return TK_GREATER_EQUAL; }
+
+"<="        {return TK_LESS_EQUAL; }
+
+"=="        {return TK_EQUAL_EQUAL; }
+
+"!="        {return TK_NOT_EQUAL; }
+
 [(){}[\];,]	{ return *yytext; }
 
 [+\-*/=]		{ return *yytext; }
+
+[<>]		{ return *yytext; }
+
 
 {NUM}		{ yylval.label = yytext; return TK_INT; }
 {REAL}      { yylval.label = yytext; return TK_FLOAT; }
