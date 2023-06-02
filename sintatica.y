@@ -101,6 +101,7 @@ void verificaDeclaracao(string label, string elemento){
 %token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT
 %token TK_FIM TK_ERROR
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
+%token TK_AND TK_OR TK_NOT
 
 
 %start S
@@ -164,7 +165,7 @@ COMANDO 	: E ';'
 			{
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
-				value.type = "bool";
+				value.type = "int";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
@@ -195,6 +196,15 @@ COMANDO 	: E ';'
 				if(findElement(SYMBOL_TABLE, $1.label)){
 					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
 														"true" + ";\n";
+				}else{
+					exit(1);
+				}		
+			}			
+			| TK_ID '=' TK_FALSE ';'
+			{
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+														"false" + ";\n";
 				}else{
 					exit(1);
 				}		
@@ -1001,7 +1011,13 @@ E 			: E '+' E
 			| TK_TRUE
 			{
 				$$.tipo = "bool";
-				cout << "TESTEE " << $$.tipo;
+				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, tempList);
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+			}
+			| TK_FALSE
+			{
+				$$.tipo = "bool";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";

@@ -1,6 +1,11 @@
 int main()
 {	
-	int a;
-	a = 1.0 > 1.0;
+	bool a;
+	a = false;
 
 }
+
+
+&&
+||
+!

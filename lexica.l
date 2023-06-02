@@ -13,6 +13,7 @@ REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
 
+
 %%
 
 "\n"		{}
@@ -29,6 +30,8 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "true"      {return TK_TRUE; }
 
+"false"      {return TK_FALSE; }
+
 ">="        {return TK_GREATER_EQUAL; }
 
 "<="        {return TK_LESS_EQUAL; }
@@ -36,6 +39,12 @@ ID {LETRA}({LETRA}|{NUM})*
 "=="        {return TK_EQUAL_EQUAL; }
 
 "!="        {return TK_NOT_EQUAL; }
+
+"&&"        {return TK_AND; }
+
+"||"        {return TK_OR; }
+
+"!"         {return TK_NOT; }
 
 [(){}[\];,]	{ return *yytext; }
 
