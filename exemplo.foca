@@ -1,10 +1,8 @@
 int main()
 {	
 	int a;
-	a = 1 > 0 && false;
+	bool b;
+	b = true; 
+	a = b || !0 > 15;
 }
 
-
-&&
-||
-!

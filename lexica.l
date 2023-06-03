@@ -56,6 +56,7 @@ ID {LETRA}({LETRA}|{NUM})*
 {NUM}		{ yylval.label = yytext; return TK_INT; }
 {REAL}      { yylval.label = yytext; return TK_FLOAT; }
 {ID}		{ yylval.label = yytext; return TK_ID; }
+{CHAR}      { yylval.label = yytext; return TK_CHAR; }
 .			{ *yytext; }
 
 %%
