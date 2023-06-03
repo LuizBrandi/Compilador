@@ -186,6 +186,10 @@ void verificaDeclaracao(string label, string elemento){
 
 %left '+' '-'
 %left '*' '/'
+%left TK_AND TK_OR
+%left TK_LESS_EQUAL TK_GREATER_EQUAL
+%left '>' '<' 
+
 %%
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
@@ -928,17 +932,17 @@ E 			: E '+' E
 			}
 			| TK_TRUE
 			{
-				$$.tipo = "bool";
+				$$.tipo = "int";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
 			{
-				$$.tipo = "bool";
+				$$.tipo = "int";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
 			}
 			| TK_ID
 			{
