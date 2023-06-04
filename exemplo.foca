@@ -1,8 +1,8 @@
 int main()
 {	
 	int a;
-	bool b;
-	b = true; 
-	a = b || !0 > 15;
+	int b;
+	b = 1;
+	a = b + 1;
 }
 

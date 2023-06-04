@@ -51,7 +51,7 @@ extern int yydebug;
   {
     TK_INT = 258,
     TK_FLOAT = 259,
-    TK_BOOL = 260,
+    TK_CHAR = 260,
     TK_TIPO_BOOL = 261,
     TK_TRUE = 262,
     TK_FALSE = 263,
@@ -59,21 +59,22 @@ extern int yydebug;
     TK_ID = 265,
     TK_TIPO_INT = 266,
     TK_TIPO_FLOAT = 267,
-    TK_FIM = 268,
-    TK_ERROR = 269,
-    TK_GREATER_EQUAL = 270,
-    TK_LESS_EQUAL = 271,
-    TK_EQUAL_EQUAL = 272,
-    TK_NOT_EQUAL = 273,
-    TK_AND = 274,
-    TK_OR = 275,
-    TK_NOT = 276
+    TK_TIPO_CHAR = 268,
+    TK_FIM = 269,
+    TK_ERROR = 270,
+    TK_GREATER_EQUAL = 271,
+    TK_LESS_EQUAL = 272,
+    TK_EQUAL_EQUAL = 273,
+    TK_NOT_EQUAL = 274,
+    TK_AND = 275,
+    TK_OR = 276,
+    TK_NOT = 277
   };
 #endif
 /* Tokens.  */
 #define TK_INT 258
 #define TK_FLOAT 259
-#define TK_BOOL 260
+#define TK_CHAR 260
 #define TK_TIPO_BOOL 261
 #define TK_TRUE 262
 #define TK_FALSE 263
@@ -81,15 +82,16 @@ extern int yydebug;
 #define TK_ID 265
 #define TK_TIPO_INT 266
 #define TK_TIPO_FLOAT 267
-#define TK_FIM 268
-#define TK_ERROR 269
-#define TK_GREATER_EQUAL 270
-#define TK_LESS_EQUAL 271
-#define TK_EQUAL_EQUAL 272
-#define TK_NOT_EQUAL 273
-#define TK_AND 274
-#define TK_OR 275
-#define TK_NOT 276
+#define TK_TIPO_CHAR 268
+#define TK_FIM 269
+#define TK_ERROR 270
+#define TK_GREATER_EQUAL 271
+#define TK_LESS_EQUAL 272
+#define TK_EQUAL_EQUAL 273
+#define TK_NOT_EQUAL 274
+#define TK_AND 275
+#define TK_OR 276
+#define TK_NOT 277
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

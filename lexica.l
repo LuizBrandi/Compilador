@@ -28,6 +28,8 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "bool"      {return TK_TIPO_BOOL; }
 
+"char"      {return TK_TIPO_CHAR; }
+
 "true"      {return TK_TRUE; }
 
 "false"      {return TK_FALSE; }

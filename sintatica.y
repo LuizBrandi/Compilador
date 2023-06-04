@@ -50,10 +50,8 @@ void removeElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
 
 bool findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
         if(hash.find(key) == hash.end()){
-            cout << "O elemento nao existe ou ja foi removido." << endl;
 			return false;
         }else{
-            cout << "O elemento esta na hash" << endl;
 			return true;
         }
 }
@@ -86,45 +84,172 @@ void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
 	tempList.push_back(temp);
 }
 
+void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_TYPE> list, string key){
+	bool declarado = false;
+	//key é label ou var1
+	//verificar se a key é temporaria
+	for(int i =0; i < list.size(); i++){
+		if(list[i].varName == key){
+			declarado = true;
+		}
+	}
+
+	if(!declarado){
+		if(hash.find(key) == hash.end()){
+			yyerror(key + " não foi declarado\n");
+		}
+	}
+	
+	// if(declarado == false) yyerror(key + " não foi declarado\n");
+	
+	// if($1.tipo == ""){
+	// 	yyerror($1.label + " não foi declarado\n");		
+	// }
+	// cout << "TESTES "<<$3.label 
+	// if($3.tipo == ""){
+	// 	yyerror($3.label + " não foi declarado\n");		
+	// }
+}
+
 void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operacao){
+	bool S1Hash = findElement(SYMBOL_TABLE, $1.label);
+	bool S3Hash = findElement(SYMBOL_TABLE, $3.label);
+	//verificando se $1 e $3 estão na tabela de simbolos
+	SYMBOL_TYPE elementS1 = returnElement(SYMBOL_TABLE, $1.label);					
+	SYMBOL_TYPE elementS3 = returnElement(SYMBOL_TABLE, $3.label);					
+
+	verificaDeclaracao(SYMBOL_TABLE, tempList, $1.label);
+	verificaDeclaracao(SYMBOL_TABLE, tempList, $3.label);
 	//criando temporaria que recebera a soma
+
 	SYMBOL_TYPE value;
 
 	int caso = 0;
 
-	//1° caso -> int e int					
+
+	//1° caso -> int e int
+	//Verificando se o elemento da possivel temporaria $3 é int 
+	if($1.tipo == "int" && elementS3.type == "int"){
+		$$.tipo = "int";
+		value.type = "int";
+		caso = 0;
+	} 
+
+	if(elementS1.type == "int" && $3.tipo == "int"){
+		$$.tipo = "int";
+		value.type = "int";
+		caso = 0;
+	} 
+
+	if(elementS1.type == "int" && elementS3.type == "int"){
+		$$.tipo = "int";
+		value.type = "int";
+		caso = 0;
+	} 
+
 	if($1.tipo == "int" && $3.tipo == "int"){
 		$$.tipo = "int";
 		value.type = "int";
 		caso = 0;
 	} 
+		
+
 	// 2° caso -> float e float
-	if($1.tipo == "float" && $3.tipo == "float" ){
+	if($1.tipo == "float" && elementS3.type == "float"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 0;
 	} 
+
+	if(elementS1.type == "float" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 0;
+	} 
+
+	if(elementS1.type == "float" && elementS3.type == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 0;
+	} 
+
+	if($1.tipo == "float" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 0;
+	} 
+
 	
+
 	// 3° caso -> int e float
-	if($1.tipo == "int" && $3.tipo == "float" ){
+	if($1.tipo == "int" && elementS3.type == "float"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 3;
-	}
+	} 
+
+	if(elementS1.type == "int" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 3;
+	} 
+
+	if(elementS1.type == "int" && elementS3.type == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 3;
+	} 
+
+	if($1.tipo == "int" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 3;
+	} 	
+
+
 	// 4° caso -> float e int					
-	if($1.tipo == "float" && $3.tipo == "int" ){
+	if($1.tipo == "float" && elementS3.type == "float"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 4;
-	}
+	} 
+
+	if(elementS1.type == "float" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 4;
+	} 
+
+	if(elementS1.type == "float" && elementS3.type == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 4;
+	} 
+
+	if($1.tipo == "float" && $3.tipo == "float"){
+		$$.tipo = "float";
+		value.type = "float";
+		caso = 0;
+	} 	
+
+	// int a;
+	// float b;
+	// b = 1.0;
+	// a = 1 + b;
 	
 	//1° caso -> int e int		
 	if(caso == 0){
 		caso = 0;
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
-		$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-				$1.label + operacao + $3.label + ";\n";	
+		if(S1Hash == true || S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+			SYMBOL_TABLE[$3.label].temp + operacao + $1.label + ";\n";	
+		} else{
+			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+			$1.label + operacao + $3.label + ";\n";	
+		}
+
 	}
 
 	// conversao int e float
@@ -165,18 +290,11 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	insereTempList(value.temp, value.type, tempList);
 }
 
-void verificaDeclaracao(string label, string elemento){
-	if(!(label == elemento)){
-		yyerror("Variável não declarada");
-		exit(1);
-	}	
-}
-
 
 %}
 
-%token TK_INT TK_FLOAT TK_BOOL TK_TIPO_BOOL TK_TRUE TK_FALSE
-%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT
+%token TK_INT TK_FLOAT TK_CHAR TK_TIPO_BOOL TK_TRUE TK_FALSE
+%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR
 %token TK_FIM TK_ERROR
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 %token TK_AND TK_OR TK_NOT
@@ -254,6 +372,18 @@ COMANDO 	: E ';'
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
+			| TK_TIPO_CHAR TK_ID ';'
+			{
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "char";
+				value.temp = geraIdAleatorio();
+				
+				//insere id na tabela de simbolos
+				insertElement(SYMBOL_TABLE, $2.label, value);
+				insereTempList(value.temp, value.type, tempList);
+				$$.traducao = $1.traducao + $2.traducao;
+			}
 			| TK_ID '=' TK_INT ';'
 			{
 				if(findElement(SYMBOL_TABLE, $1.label)){
@@ -289,6 +419,15 @@ COMANDO 	: E ';'
 				}else{
 					exit(1);
 				}		
+			}
+			| TK_ID '=' TK_CHAR ';'
+			{
+				if(findElement(SYMBOL_TABLE, $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+														$3.label + ";\n";
+				}else{
+					exit(1);
+				}	
 			}			
 			| TK_ID '=' E ';'
 			{
@@ -410,82 +549,82 @@ E 			: E '+' E
 			}
 			| TK_NOT E
 			{
-				//criando temporaria que recebera a soma
-				SYMBOL_TYPE value;
+				// //criando temporaria que recebera a soma
+				// SYMBOL_TYPE value;
 
-				int caso = 0;
+				// int caso = 0;
 
-				//1° caso -> int e int					
-				if($1.tipo == "int" && $3.tipo == "int"){
-					$$.tipo = "int";
-					value.type = "int";
-					caso = 0;
-				} 
-				// 2° caso -> float e float
-				if($1.tipo == "float" && $3.tipo == "float" ){
-					$$.tipo = "float";
-					value.type = "float";
-					caso = 0;
-				} 
+				// //1° caso -> int e int					
+				// if($1.tipo == "int" && $3.tipo == "int"){
+				// 	$$.tipo = "int";
+				// 	value.type = "int";
+				// 	caso = 0;
+				// } 
+				// // 2° caso -> float e float
+				// if($1.tipo == "float" && $3.tipo == "float" ){
+				// 	$$.tipo = "float";
+				// 	value.type = "float";
+				// 	caso = 0;
+				// } 
 				
-				// 3° caso -> int e float
-				if($1.tipo == "int" && $3.tipo == "float" ){
-					$$.tipo = "float";
-					value.type = "float";
-					caso = 3;
-				}
-				// 4° caso -> float e int					
-				if($1.tipo == "float" && $3.tipo == "int" ){
-					$$.tipo = "float";
-					value.type = "float";
-					caso = 4;
-				}
+				// // 3° caso -> int e float
+				// if($1.tipo == "int" && $3.tipo == "float" ){
+				// 	$$.tipo = "float";
+				// 	value.type = "float";
+				// 	caso = 3;
+				// }
+				// // 4° caso -> float e int					
+				// if($1.tipo == "float" && $3.tipo == "int" ){
+				// 	$$.tipo = "float";
+				// 	value.type = "float";
+				// 	caso = 4;
+				// }
 				
-				//1° caso -> int e int		
-				if(caso == 0){
-					caso = 0;
-					$$.label = geraIdAleatorio();	
-					value.varName = $$.label;
-					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-							$1.label + operacao + $3.label + ";\n";	
-				}
+				// //1° caso -> int e int		
+				// if(caso == 0){
+				// 	caso = 0;
+				// 	$$.label = geraIdAleatorio();	
+				// 	value.varName = $$.label;
+				// 	$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+				// 			$1.label + operacao + $3.label + ";\n";	
+				// }
 
-				// conversao int e float
-				if(caso == 3){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
-					//Criando o label da var que vai receber a conversão
-					$$.label = geraIdAleatorio();	
-					value.varName = $$.label;
+				// // conversao int e float
+				// if(caso == 3){
+				// 	caso = 0;
+				// 	//Criando var de conversão implicita  e inserindo na lista de temps
+				// 	SYMBOL_TYPE tempConvert;
+				// 	tempConvert.temp = geraIdAleatorio();
+				// 	tempConvert.type = "float";
+				// 	insereTempList(tempConvert.temp, tempConvert.type, tempList);
+				// 	//Criando o label da var que vai receber a conversão
+				// 	$$.label = geraIdAleatorio();	
+				// 	value.varName = $$.label;
 					
-					$$.traducao = $1.traducao + $3.traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
-					+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
-				}
-				// conversao float e int
-				if(caso == 4){
-					caso = 0;
-					//Criando var de conversão implicita  e inserindo na lista de temps
-					SYMBOL_TYPE tempConvert;
-					tempConvert.temp = geraIdAleatorio();
-					tempConvert.type = "float";
-					insereTempList(tempConvert.temp, tempConvert.type, tempList);
+				// 	$$.traducao = $1.traducao + $3.traducao + 
+				// 	"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+				// 	+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
+				// }
+				// // conversao float e int
+				// if(caso == 4){
+				// 	caso = 0;
+				// 	//Criando var de conversão implicita  e inserindo na lista de temps
+				// 	SYMBOL_TYPE tempConvert;
+				// 	tempConvert.temp = geraIdAleatorio();
+				// 	tempConvert.type = "float";
+				// 	insereTempList(tempConvert.temp, tempConvert.type, tempList);
 
-					$$.label = geraIdAleatorio();	
-					value.varName = $$.label;
+				// 	$$.label = geraIdAleatorio();	
+				// 	value.varName = $$.label;
 
-					$$.traducao = $1.traducao + $3.traducao + 
-					"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-					+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";
-				}	
+				// 	$$.traducao = $1.traducao + $3.traducao + 
+				// 	"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+				// 	+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";
+				// }	
 
 
-				value.temp = $$.label;				
-				insereTempList(value.temp, value.type, tempList);
+				// value.temp = $$.label;				
+				// insereTempList(value.temp, value.type, tempList);
 			}
 			| TK_INT
 			{
@@ -516,6 +655,14 @@ E 			: E '+' E
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
+			}
+			| TK_CHAR
+			{
+				$$.tipo = "char";
+				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, tempList);
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";	
+					
 			}
 			| TK_ID
 			{
