@@ -208,28 +208,28 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 
 	// 4° caso -> float e int					
-	if($1.tipo == "float" && elementS3.type == "float"){
+	if($1.tipo == "float" && elementS3.type == "int"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 4;
 	} 
 
-	if(elementS1.type == "float" && $3.tipo == "float"){
+	if(elementS1.type == "float" && $3.tipo == "int"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 4;
 	} 
 
-	if(elementS1.type == "float" && elementS3.type == "float"){
+	if(elementS1.type == "float" && elementS3.type == "int"){
 		$$.tipo = "float";
 		value.type = "float";
 		caso = 4;
 	} 
 
-	if($1.tipo == "float" && $3.tipo == "float"){
+	if($1.tipo == "float" && $3.tipo == "int"){
 		$$.tipo = "float";
 		value.type = "float";
-		caso = 0;
+		caso = 4;
 	} 	
 
 	// int a;
@@ -242,12 +242,22 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		caso = 0;
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
-		if(S1Hash == true || S3Hash == true){
+
+		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-			SYMBOL_TABLE[$3.label].temp + operacao + $1.label + ";\n";	
-		} else{
+			SYMBOL_TABLE[$3.label].temp + operacao + SYMBOL_TABLE[$1.label].temp + ";\n";	
+		}
+		if(S1Hash == true && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-			$1.label + operacao + $3.label + ";\n";	
+			SYMBOL_TABLE[$1.label].temp  + operacao + $3.label + ";\n";	
+		}
+		if(S1Hash == false && S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+			$1.label  + operacao + SYMBOL_TABLE[$3.label].temp + ";\n";	
+		}
+		if(S1Hash == false && S3Hash == false){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+			$1.label  + operacao + $3.label + ";\n";	
 		}
 
 	}
@@ -263,10 +273,27 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		//Criando o label da var que vai receber a conversão
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
-		
-		$$.traducao = $1.traducao + $3.traducao + 
-		"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
-		+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
+
+		if(S1Hash == true && S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$1.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$3.label].temp + operacao + tempConvert.temp + ";\n";
+		}
+		if(S1Hash == true && S3Hash == false){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$1.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
+		}
+		if(S1Hash == false && S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$3.label].temp + operacao + tempConvert.temp + ";\n";	
+		}
+		if(S1Hash == false && S3Hash == false){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
+			+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";	
+		}
 	}
 	// conversao float e int
 	if(caso == 4){
@@ -280,11 +307,27 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
 
-		$$.traducao = $1.traducao + $3.traducao + 
-		"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-		+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";
+		if(S1Hash == true && S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$3.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$1.label].temp + operacao + tempConvert.temp + ";\n";	
+		}
+		if(S1Hash == true && S3Hash == false){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$1.label].temp + operacao + tempConvert.temp + ";\n";	
+		}
+		if(S1Hash == false && S3Hash == true){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$3.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";	
+		}
+		if(S1Hash == false && S3Hash == false){
+			$$.traducao = $1.traducao + $3.traducao + 
+			"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
+			+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";
+		}
 	}	
-
 
 	value.temp = $$.label;				
 	insereTempList(value.temp, value.type, tempList);
