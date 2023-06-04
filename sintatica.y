@@ -1,12 +1,12 @@
- %{
+%{
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <unordered_map>
 #include <cstdlib>
 #include <vector>
-
 #define YYSTYPE atributos
+
 
 using namespace std;
 
@@ -116,8 +116,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 	verificaDeclaracao(SYMBOL_TABLE, tempList, $1.label);
 	verificaDeclaracao(SYMBOL_TABLE, tempList, $3.label);
-	//criando temporaria que recebera a soma
 
+	//criando temporaria que recebera a soma
 	SYMBOL_TYPE value;
 
 	int caso = 0;
@@ -148,7 +148,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		value.type = "int";
 		caso = 0;
 	} 
-		
+
+
 
 	// 2° caso -> float e float
 	if($1.tipo == "float" && elementS3.type == "float"){
@@ -228,10 +229,30 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		caso = 4;
 	} 	
 
-	// int a;
-	// float b;
-	// b = 1.0;
-	// a = 1 + b;
+	// 5° caso -> char e char					
+	if($1.tipo == "char" && elementS3.type == "char"){
+		$$.tipo = "char";
+		value.type = "char";
+		caso = 0;
+	} 
+
+	if(elementS1.type == "char" && $3.tipo == "char"){
+		$$.tipo = "char";
+		value.type = "char";
+		caso = 0;
+	} 
+
+	if(elementS1.type == "char" && elementS3.type == "char"){
+		$$.tipo = "char";
+		value.type = "char";
+		caso = 0;
+	} 
+
+	if($1.tipo == "char" && $3.tipo == "char"){
+		$$.tipo = "char";
+		value.type = "char";
+		caso = 0;
+	} 	
 	
 	//1° caso -> int e int		
 	if(caso == 0){
@@ -255,7 +276,6 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 			$1.label  + operacao + $3.label + ";\n";	
 		}
-
 	}
 
 	// conversao int e float
@@ -329,6 +349,18 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	insereTempList(value.temp, value.type, tempList);
 }
 
+void realizaOperacaoLogica(atributos& $$, atributos& $1, atributos& $3, string operacao){
+	
+	if($1.tipo != "bool" || $3.tipo != "bool"){
+			yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+		}
+		//se for diferente 
+		else{
+			if($1.tipo == "bool") $1.tipo = "int";
+			if($3.tipo == "bool") $3.tipo = "int";
+			realizaOperacao($$, $1, $3, operacao);
+		}
+}
 
 %}
 
@@ -518,9 +550,22 @@ E 			: E '+' E
 			{
 				realizaOperacao($$, $1, $3, " / ");
 			}
-			| TIPO E 
+			| TK_CONVERT_FLOAT E 
 			{
-				$$.tipo = $1.tipo;
+				$$.tipo = "float";
+				// cout << "\n\nTESTESS " + $$.tipo;  
+				$$.label =  geraIdAleatorio();
+
+				SYMBOL_TYPE tempConvert;
+				tempConvert.temp = $$.label;
+				tempConvert.type = $$.tipo;
+				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+
+				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")--" + $2.label + ";\n";
+			}
+			| TK_CONVERT_INT E 
+			{
+				$$.tipo = "float";
 				cout << "\n\nTESTESS " + $$.tipo;  
 				$$.label =  geraIdAleatorio();
 
@@ -530,7 +575,6 @@ E 			: E '+' E
 				insereTempList(tempConvert.temp, tempConvert.type, tempList);
 
 				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
-
 			}
 			| E '>' E
 			{
@@ -539,27 +583,22 @@ E 			: E '+' E
 			| E TK_GREATER_EQUAL E
 			{
 				realizaOperacao($$, $1, $3, " >= ");
-				
 			}
 			| E '<' E
 			{
 				realizaOperacao($$, $1, $3, " < ");
-				
 			}
 			| E TK_LESS_EQUAL E
 			{
-				realizaOperacao($$, $1, $3, " <= ");
-				
+				realizaOperacao($$, $1, $3, " <= ");	
 			}
 			| E TK_EQUAL_EQUAL E
 			{
 				realizaOperacao($$, $1, $3, " == ");
-				
 			}
 			| E TK_NOT_EQUAL E
 			{
-				realizaOperacao($$, $1, $3, " != ");
-				
+				realizaOperacao($$, $1, $3, " != ");	
 			}
 			| E '%' E
 			{
@@ -583,11 +622,10 @@ E 			: E '+' E
 			}
 			| E TK_AND E
 			{
-				realizaOperacao($$, $1, $3, " && ");
-				
+				realizaOperacaoLogica($$, $1, $3, " && ");
 			}
 			| E TK_OR E{
-				realizaOperacao($$, $1, $3, " || ");
+				realizaOperacaoLogica($$, $1, $3, " || ");
 			}
 			| TK_NOT E
 			{
@@ -610,14 +648,14 @@ E 			: E '+' E
 			}
 			| TK_TRUE
 			{
-				$$.tipo = "int";
+				$$.tipo = "bool";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
 			{
-				$$.tipo = "int";
+				$$.tipo = "bool";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
@@ -647,17 +685,7 @@ E 			: E '+' E
 				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;
-
-TIPO 	: TK_CONVERT_INT
-		{
-			$$.tipo = "int";
-		}
-		| TK_CONVERT_FLOAT
-		{
-			$$.tipo = "float";
-		}
 %%
-
 
 #include "lex.yy.c"
 
