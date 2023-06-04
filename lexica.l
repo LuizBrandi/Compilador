@@ -32,7 +32,11 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "true"      {return TK_TRUE; }
 
-"false"      {return TK_FALSE; }
+"false"     {return TK_FALSE; }
+
+"(float)"   {return TK_CONVERT_FLOAT; }
+
+"(int)"     {return TK_CONVERT_INT; }
 
 ">="        {return TK_GREATER_EQUAL; }
 
@@ -50,7 +54,7 @@ ID {LETRA}({LETRA}|{NUM})*
 
 [(){}[\];,]	{ return *yytext; }
 
-[+\-*/=%]		{ return *yytext; }
+[+\-*/=%]   { return *yytext; }
 
 [<>]		{ return *yytext; }
 

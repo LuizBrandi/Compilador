@@ -96,19 +96,15 @@ void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_T
 
 	if(!declarado){
 		if(hash.find(key) == hash.end()){
-			yyerror(key + " não foi declarado\n");
+			yyerror("\'" + key + "\'" + " não foi declarado\n");
 		}
 	}
-	
-	// if(declarado == false) yyerror(key + " não foi declarado\n");
-	
-	// if($1.tipo == ""){
-	// 	yyerror($1.label + " não foi declarado\n");		
-	// }
-	// cout << "TESTES "<<$3.label 
-	// if($3.tipo == ""){
-	// 	yyerror($3.label + " não foi declarado\n");		
-	// }
+}
+
+void verificaDeclaracaoPrevia(unordered_map<string, SYMBOL_TYPE> hash, string key){
+	if(findElement(hash, key)){
+		yyerror("\'" + key + "\'" + " já foi declarado\n");
+	}
 }
 
 void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operacao){
@@ -338,6 +334,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 %token TK_INT TK_FLOAT TK_CHAR TK_TIPO_BOOL TK_TRUE TK_FALSE
 %token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR
+%token TK_CONVERT_FLOAT TK_CONVERT_INT
 %token TK_FIM TK_ERROR
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 %token TK_AND TK_OR TK_NOT
@@ -350,6 +347,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 %left TK_AND TK_OR
 %left TK_LESS_EQUAL TK_GREATER_EQUAL
 %left '>' '<' 
+%nonassoc TK_CONVERT_FLOAT TK_CONVERT_INT
 
 %%
 
@@ -380,7 +378,7 @@ COMANDOS	: COMANDO COMANDOS
 COMANDO 	: E ';'
 			| TK_TIPO_INT TK_ID ';'
 			{
-				
+				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
@@ -393,6 +391,7 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_FLOAT TK_ID ';'
 			{
+				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "float";
@@ -405,6 +404,7 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_BOOL TK_ID ';'
 			{
+				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
@@ -417,6 +417,7 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_CHAR TK_ID ';'
 			{
+				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "char";
@@ -517,20 +518,18 @@ E 			: E '+' E
 			{
 				realizaOperacao($$, $1, $3, " / ");
 			}
-			| '(' TIPO ')' E 
+			| TIPO E 
 			{
-				$$.tipo = "float";
+				$$.tipo = $1.tipo;
+				cout << "\n\nTESTESS " + $$.tipo;  
 				$$.label =  geraIdAleatorio();
-				//sinalizaConversao comeca true
-				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
-				sinalizaConversao = 0;
-				cout << "Valor do sinaliza conversao:" << (sinalizaConversao) << "\n";
+
 				SYMBOL_TYPE tempConvert;
 				tempConvert.temp = $$.label;
-				tempConvert.type = "float";
+				tempConvert.type = $$.tipo;
 				insereTempList(tempConvert.temp, tempConvert.type, tempList);
 
-				$$.traducao = $2.traducao + $4.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $4.label + ";\n";
+				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
 
 			}
 			| E '>' E
@@ -592,82 +591,6 @@ E 			: E '+' E
 			}
 			| TK_NOT E
 			{
-				// //criando temporaria que recebera a soma
-				// SYMBOL_TYPE value;
-
-				// int caso = 0;
-
-				// //1° caso -> int e int					
-				// if($1.tipo == "int" && $3.tipo == "int"){
-				// 	$$.tipo = "int";
-				// 	value.type = "int";
-				// 	caso = 0;
-				// } 
-				// // 2° caso -> float e float
-				// if($1.tipo == "float" && $3.tipo == "float" ){
-				// 	$$.tipo = "float";
-				// 	value.type = "float";
-				// 	caso = 0;
-				// } 
-				
-				// // 3° caso -> int e float
-				// if($1.tipo == "int" && $3.tipo == "float" ){
-				// 	$$.tipo = "float";
-				// 	value.type = "float";
-				// 	caso = 3;
-				// }
-				// // 4° caso -> float e int					
-				// if($1.tipo == "float" && $3.tipo == "int" ){
-				// 	$$.tipo = "float";
-				// 	value.type = "float";
-				// 	caso = 4;
-				// }
-				
-				// //1° caso -> int e int		
-				// if(caso == 0){
-				// 	caso = 0;
-				// 	$$.label = geraIdAleatorio();	
-				// 	value.varName = $$.label;
-				// 	$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-				// 			$1.label + operacao + $3.label + ";\n";	
-				// }
-
-				// // conversao int e float
-				// if(caso == 3){
-				// 	caso = 0;
-				// 	//Criando var de conversão implicita  e inserindo na lista de temps
-				// 	SYMBOL_TYPE tempConvert;
-				// 	tempConvert.temp = geraIdAleatorio();
-				// 	tempConvert.type = "float";
-				// 	insereTempList(tempConvert.temp, tempConvert.type, tempList);
-				// 	//Criando o label da var que vai receber a conversão
-				// 	$$.label = geraIdAleatorio();	
-				// 	value.varName = $$.label;
-					
-				// 	$$.traducao = $1.traducao + $3.traducao + 
-				// 	"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
-				// 	+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
-				// }
-				// // conversao float e int
-				// if(caso == 4){
-				// 	caso = 0;
-				// 	//Criando var de conversão implicita  e inserindo na lista de temps
-				// 	SYMBOL_TYPE tempConvert;
-				// 	tempConvert.temp = geraIdAleatorio();
-				// 	tempConvert.type = "float";
-				// 	insereTempList(tempConvert.temp, tempConvert.type, tempList);
-
-				// 	$$.label = geraIdAleatorio();	
-				// 	value.varName = $$.label;
-
-				// 	$$.traducao = $1.traducao + $3.traducao + 
-				// 	"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-				// 	+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";
-				// }	
-
-
-				// value.temp = $$.label;				
-				// insereTempList(value.temp, value.type, tempList);
 			}
 			| TK_INT
 			{
@@ -725,11 +648,11 @@ E 			: E '+' E
 			}
 			;
 
-TIPO 	: TK_TIPO_INT
+TIPO 	: TK_CONVERT_INT
 		{
 			$$.tipo = "int";
 		}
-		| TK_TIPO_FLOAT
+		| TK_CONVERT_FLOAT
 		{
 			$$.tipo = "float";
 		}
@@ -756,6 +679,3 @@ void yyerror( string MSG )
 string geraIdAleatorio(){
 	return "var" + to_string(contador++);
 }
-
-
-	
