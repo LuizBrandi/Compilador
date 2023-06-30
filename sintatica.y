@@ -20,6 +20,7 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
+	int isBool = 0;
 };
 
 typedef struct{
@@ -350,16 +351,11 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 }
 
 void realizaOperacaoLogica(atributos& $$, atributos& $1, atributos& $3, string operacao){
-	
-	if($1.tipo != "bool" || $3.tipo != "bool"){
-			yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
-		}
-		//se for diferente 
-		else{
-			if($1.tipo == "bool") $1.tipo = "int";
-			if($3.tipo == "bool") $3.tipo = "int";
-			realizaOperacao($$, $1, $3, operacao);
-		}
+	//Se o IsBool == 1, então é booleano
+	if($1.isBool == 1 && $3.isBool != 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
+	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	realizaOperacao($$, $1, $3, operacao);
 }
 
 %}
@@ -648,14 +644,16 @@ E 			: E '+' E
 			}
 			| TK_TRUE
 			{
-				$$.tipo = "bool";
+				$$.tipo = "int";
+				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
 			{
-				$$.tipo = "bool";
+				$$.tipo = "int";
+				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";

@@ -1,6 +1,8 @@
 int main()
 {	
-	char a;
-	a = 'a' + 'b';
+	1 > 0 && 0;
 }
 
+true > 0; // não pode
+
+1 > 0 || 1; // era pra funcionar (?)
