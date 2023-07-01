@@ -5,8 +5,9 @@
 #include <unordered_map>
 #include <cstdlib>
 #include <vector>
-#define YYSTYPE atributos
+#include <stack>
 
+#define YYSTYPE atributos
 
 using namespace std;
 
@@ -29,7 +30,12 @@ typedef struct{
 	string temp;
 } SYMBOL_TYPE;
 
-unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
+//Criando prototipo da pilha de tabelas de símbolos
+unordered_map<string, SYMBOL_TYPE> * criaTabela(){
+    return new unordered_map<string, SYMBOL_TYPE>;
+}
+
+stack<unordered_map<string, SYMBOL_TYPE> *> pilha;
 
 //vector para temporarias
 vector<SYMBOL_TYPE> tempList;
@@ -109,6 +115,11 @@ void verificaDeclaracaoPrevia(unordered_map<string, SYMBOL_TYPE> hash, string ke
 }
 
 void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operacao){
+	if($1.isBool == 1 && $3.isBool != 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	if($1.isBool == 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + "bool" + "\n");
+	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
+	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	
 	bool S1Hash = findElement(SYMBOL_TABLE, $1.label);
 	bool S3Hash = findElement(SYMBOL_TABLE, $3.label);
 	//verificando se $1 e $3 estão na tabela de simbolos
@@ -355,6 +366,7 @@ void realizaOperacaoLogica(atributos& $$, atributos& $1, atributos& $3, string o
 	if($1.isBool == 1 && $3.isBool != 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
 	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	
 	realizaOperacao($$, $1, $3, operacao);
 }
 
@@ -389,7 +401,10 @@ S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 
 BLOCO		: '{' COMANDOS '}'
 			{
-				$$.traducao = $2.traducao;
+				//Ao abrir um novo bloco criamos uma nova tabela de simbolos e empilhamos
+				pilha.push(criaTabela());
+				unordered_map<string, SYMBOL_TYPE> * escopoAtual = pilha.top();
+				$$.traducao = $2.traducao;	
 			}
 			;
 
@@ -404,6 +419,7 @@ COMANDOS	: COMANDO COMANDOS
 			;
 
 COMANDO 	: E ';'
+			| BLOCO
 			| TK_TIPO_INT TK_ID ';'
 			{
 				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);

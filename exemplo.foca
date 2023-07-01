@@ -1,8 +1,9 @@
 int main()
 {	
-	1 > 0 && 0;
+	int a;
+	a = 1;
+	{
+		int a;
+		a = 2;
+	}
 }
-
-true > 0; // não pode
-
-1 > 0 || 1; // era pra funcionar (?)
