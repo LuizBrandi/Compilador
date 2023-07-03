@@ -30,19 +30,24 @@ typedef struct{
 	string temp;
 } SYMBOL_TYPE;
 
-//Criando prototipo da pilha de tabelas de símbolos
-unordered_map<string, SYMBOL_TYPE> * criaTabela(){
-    return new unordered_map<string, SYMBOL_TYPE>;
-}
-
-stack<unordered_map<string, SYMBOL_TYPE> *> pilha;
+unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
+vector<unordered_map<string, SYMBOL_TYPE>> pilha;
 
 //vector para temporarias
 vector<SYMBOL_TYPE> tempList;
-
+//teste
 int yylex(void);
 void yyerror(string);
 string geraIdAleatorio();
+
+void empilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+    pilha.push_back(unordered_map<string, SYMBOL_TYPE>());
+}
+
+void desempilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+    pilha.pop_back();
+}
+
 
 void insertElement(unordered_map<string, SYMBOL_TYPE>& hash, string key, SYMBOL_TYPE value){
     hash[key] = value;
@@ -399,14 +404,23 @@ S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			}
 			;
 
-BLOCO		: '{' COMANDOS '}'
+BLOCO		: '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
 			{
-				//Ao abrir um novo bloco criamos uma nova tabela de simbolos e empilhamos
-				pilha.push(criaTabela());
-				unordered_map<string, SYMBOL_TYPE> * escopoAtual = pilha.top();
 				$$.traducao = $2.traducao;	
 			}
 			;
+
+BLOCO_INICIO :
+            {
+                empilha(pilha);
+            }
+            ;
+
+BLOCO_FIM :
+            {
+                desempilha(pilha);
+            }
+            ;
 
 COMANDOS	: COMANDO COMANDOS
 			{
