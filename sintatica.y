@@ -13,7 +13,7 @@ using namespace std;
 
 // contador pra gerar ids 
 int contador = 0;
-bool sinalizaConversao = 1;
+int indiceEscopoAtual = 0;
 
 
 struct atributos
@@ -35,13 +35,14 @@ vector<unordered_map<string, SYMBOL_TYPE>> pilha;
 
 //vector para temporarias
 vector<SYMBOL_TYPE> tempList;
-//teste
+
 int yylex(void);
 void yyerror(string);
 string geraIdAleatorio();
 
 void empilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
     pilha.push_back(unordered_map<string, SYMBOL_TYPE>());
+    indiceEscopoAtual = pilha.size() - 1;
 }
 
 void desempilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
@@ -387,11 +388,11 @@ void realizaOperacaoLogica(atributos& $$, atributos& $1, atributos& $3, string o
 
 %start S
 
-%left '+' '-'
-%left '*' '/'
 %left TK_AND TK_OR
 %left TK_LESS_EQUAL TK_GREATER_EQUAL
-%left '>' '<' 
+%left '>' '<'
+%left '+' '-'
+%left '*' '/' 
 %nonassoc TK_CONVERT_FLOAT TK_CONVERT_INT
 
 %%
@@ -404,23 +405,24 @@ S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			}
 			;
 
-BLOCO		: '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
-			{
-				$$.traducao = $2.traducao;	
-			}
-			;
+BLOCO       : '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
+            {
+                $$.traducao = $3.traducao;
+            }
+            ;
 
-BLOCO_INICIO :
+BLOCO_INICIO:
             {
                 empilha(pilha);
             }
             ;
 
-BLOCO_FIM :
-            {
+BLOCO_FIM   :
+            { 
                 desempilha(pilha);
             }
             ;
+			
 
 COMANDOS	: COMANDO COMANDOS
 			{
@@ -436,27 +438,27 @@ COMANDO 	: E ';'
 			| BLOCO
 			| TK_TIPO_INT TK_ID ';'
 			{
-				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
 				value.temp = geraIdAleatorio();
 
 				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $2.label, value);
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_FLOAT TK_ID ';'
 			{
-				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "float";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $2.label, value);
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
@@ -488,8 +490,8 @@ COMANDO 	: E ';'
 			}
 			| TK_ID '=' TK_INT ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
+				if(findElement(pilha[indiceEscopoAtual], $1.label)){
+					$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceEscopoAtual][$1.label].temp + " = " +
 														$3.label + ";\n";
 				}else{
 					exit(1);
@@ -659,7 +661,6 @@ E 			: E '+' E
 			| TK_INT
 			{
 				$$.tipo = "int";
-				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 

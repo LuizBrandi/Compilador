@@ -864,47 +864,47 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 55 "lexica.l"
+#line 56 "lexica.l"
 { return *yytext; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 57 "lexica.l"
+#line 58 "lexica.l"
 { return *yytext; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 59 "lexica.l"
+#line 60 "lexica.l"
 { return *yytext; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 62 "lexica.l"
+#line 63 "lexica.l"
 { yylval.label = yytext; return TK_INT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 63 "lexica.l"
+#line 64 "lexica.l"
 { yylval.label = yytext; return TK_FLOAT; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 64 "lexica.l"
+#line 65 "lexica.l"
 { yylval.label = yytext; return TK_ID; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 65 "lexica.l"
+#line 66 "lexica.l"
 { yylval.label = yytext; return TK_CHAR; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 66 "lexica.l"
+#line 67 "lexica.l"
 { *yytext; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 68 "lexica.l"
+#line 69 "lexica.l"
 ECHO;
 	YY_BREAK
 #line 911 "lex.yy.c"
@@ -1912,6 +1912,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 68 "lexica.l"
+#line 69 "lexica.l"
 
 

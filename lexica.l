@@ -52,6 +52,7 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "!"         {return TK_NOT; }
 
+
 [(){}[\];,]	{ return *yytext; }
 
 [+\-*/=%]   { return *yytext; }
