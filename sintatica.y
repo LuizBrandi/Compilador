@@ -48,7 +48,7 @@ void empilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
 void desempilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
     pilha.pop_back();
 }
-
+		
 
 void insertElement(unordered_map<string, SYMBOL_TYPE>& hash, string key, SYMBOL_TYPE value){
     hash[key] = value;
@@ -68,6 +68,27 @@ bool findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
 			return true;
         }
 }
+
+
+void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+	int auxiliar = indiceEscopoAtual;
+	//procurando o elemento nos varios escopo
+	while(auxiliar >= 0){
+		if(findElement(pilha[auxiliar], $1.label)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[auxiliar][$1.label].temp + " = " + $3.label + ";\n";
+			break;
+	}
+	auxiliar--;
+	}
+	if(auxiliar < 0){
+		yyerror("\'" + $1.label + "\'" + " não foi declarado -----\n");
+		
+	}
+		
+	// exit(1); 
+}
+		
+
 
 SYMBOL_TYPE returnElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
     auto iter = hash.find(key);
@@ -98,6 +119,7 @@ void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
 }
 
 void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_TYPE> list, string key){
+	
 	bool declarado = false;
 	//key é label ou var1
 	//verificar se a key é temporaria
@@ -106,7 +128,7 @@ void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_T
 			declarado = true;
 		}
 	}
-
+	
 	if(!declarado){
 		if(hash.find(key) == hash.end()){
 			yyerror("\'" + key + "\'" + " não foi declarado\n");
@@ -126,20 +148,22 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
 	
-	bool S1Hash = findElement(SYMBOL_TABLE, $1.label);
-	bool S3Hash = findElement(SYMBOL_TABLE, $3.label);
-	//verificando se $1 e $3 estão na tabela de simbolos
-	SYMBOL_TYPE elementS1 = returnElement(SYMBOL_TABLE, $1.label);					
-	SYMBOL_TYPE elementS3 = returnElement(SYMBOL_TABLE, $3.label);					
+	bool S1Hash = findElement(pilha[indiceEscopoAtual], $1.label);
+	bool S3Hash = findElement(pilha[indiceEscopoAtual], $3.label);
 
-	verificaDeclaracao(SYMBOL_TABLE, tempList, $1.label);
-	verificaDeclaracao(SYMBOL_TABLE, tempList, $3.label);
+	//verificando se $1 e $3 estão na tabela de simbolos
+	SYMBOL_TYPE elementS1 = returnElement(pilha[indiceEscopoAtual], $1.label);					
+	SYMBOL_TYPE elementS3 = returnElement(pilha[indiceEscopoAtual], $3.label);
+
+	cout << "----- " + elementS1.varName + "\n";					
+
+	verificaDeclaracao(pilha[indiceEscopoAtual], tempList, $1.label);
+	verificaDeclaracao(pilha[indiceEscopoAtual], tempList, $3.label);
 
 	//criando temporaria que recebera a soma
-	SYMBOL_TYPE value;
+	SYMBOL_TYPE value;	
 
 	int caso = 0;
-
 
 	//1° caso -> int e int
 	//Verificando se o elemento da possivel temporaria $3 é int 
@@ -166,7 +190,6 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		value.type = "int";
 		caso = 0;
 	} 
-
 
 
 	// 2° caso -> float e float
@@ -280,18 +303,18 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-			SYMBOL_TABLE[$3.label].temp + operacao + SYMBOL_TABLE[$1.label].temp + ";\n";	
+			pilha[indiceEscopoAtual][$3.label].temp + operacao + pilha[indiceEscopoAtual][$1.label].temp + ";\n";	
 		}
 		if(S1Hash == true && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-			SYMBOL_TABLE[$1.label].temp  + operacao + $3.label + ";\n";	
+			pilha[indiceEscopoAtual][$1.label].temp  + operacao + $3.label + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
-			$1.label  + operacao + SYMBOL_TABLE[$3.label].temp + ";\n";	
+			$1.label  + operacao + pilha[indiceEscopoAtual][$3.label].temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == false){
-			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
+			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = ------" +
 			$1.label  + operacao + $3.label + ";\n";	
 		}
 	}
@@ -310,18 +333,18 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$1.label].temp + ";\n"
-			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$3.label].temp + operacao + tempConvert.temp + ";\n";
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$1.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$3.label].temp + operacao + tempConvert.temp + ";\n";
 		}
 		if(S1Hash == true && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$1.label].temp + ";\n"
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$1.label].temp + ";\n"
 			+ "\t" + $$.label + " = " +  $3.label + operacao + tempConvert.temp + ";\n";
 		}
 		if(S1Hash == false && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
 			"\t" + tempConvert.temp +  " = " + "(float)" + $1.label + ";\n"
-			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$3.label].temp + operacao + tempConvert.temp + ";\n";	
+			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$3.label].temp + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + 
@@ -343,17 +366,17 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$3.label].temp + ";\n"
-			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$1.label].temp + operacao + tempConvert.temp + ";\n";	
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$3.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$1.label].temp + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == true && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + 
 			"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-			+ "\t" + $$.label + " = " +  SYMBOL_TABLE[$1.label].temp + operacao + tempConvert.temp + ";\n";	
+			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$1.label].temp + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + SYMBOL_TABLE[$3.label].temp + ";\n"
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$3.label].temp + ";\n"
 			+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == false){
@@ -464,83 +487,59 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_BOOL TK_ID ';'
 			{
-				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $2.label, value);
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_CHAR TK_ID ';'
 			{
-				verificaDeclaracaoPrevia(SYMBOL_TABLE, $2.label);
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "char";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
-				insertElement(SYMBOL_TABLE, $2.label, value);
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_ID '=' TK_INT ';'
 			{
-				if(findElement(pilha[indiceEscopoAtual], $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceEscopoAtual][$1.label].temp + " = " +
-														$3.label + ";\n";
-				}else{
-					exit(1);
-				}	
+				atribuicao($$, $1, $3, pilha);
+				
 			}		
 			| TK_ID '=' TK_FLOAT ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
-														$3.label + ";\n";
-				}else{
-					exit(1);
-				}		
+				atribuicao($$, $1, $3, pilha);
 			}
 			| TK_ID '=' TK_TRUE ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
-														"1" + ";\n";
-				}else{
-					exit(1);
-				}		
+				atribuicao($$, $1, $3, pilha);
 			}			
 			| TK_ID '=' TK_FALSE ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
-														"0" + ";\n";
-				}else{
-					exit(1);
-				}		
+				atribuicao($$, $1, $3, pilha);
 			}
 			| TK_ID '=' TK_CHAR ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " +
-														$3.label + ";\n";
-				}else{
-					exit(1);
-				}	
+				atribuicao($$, $1, $3, pilha);
 			}			
 			| TK_ID '=' E ';'
 			{
-				if(findElement(SYMBOL_TABLE, $1.label)){
-					SYMBOL_TYPE value = returnElement(SYMBOL_TABLE, $1.label);
+				if(findElement(pilha[indiceEscopoAtual], $1.label)){
+					SYMBOL_TYPE value = returnElement(pilha[indiceEscopoAtual], $1.label);
 
 					//Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
 					if((value.type == $3.tipo)){
-						$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " 
+						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceEscopoAtual][$1.label].temp + " = " 
 						+ $3.label + ";\n";
 					}
 									
@@ -553,7 +552,7 @@ COMANDO 	: E ';'
 
 					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
 					else{
-							$$.traducao = $1.traducao + $3.traducao + "\t" + SYMBOL_TABLE[$1.label].temp + " = " + 
+							$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceEscopoAtual][$1.label].temp + " = " + 
 							"(" + value.type + ")" + $3.label + ";\n";			
 					}
 				}else{
@@ -707,7 +706,7 @@ E 			: E '+' E
 				// value.temp = $$.label;
 				
 				// //insere id na tabela de simbolos
-				// insertElement(SYMBOL_TABLE, $1.label, value);
+				// insertElement(pilha[indiceEscopoAtual], $1.label, value);
 				// //procurando elemento na hash
 				// // SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
 				// // verificaDeclaracao($1.label, elemento.varName);
