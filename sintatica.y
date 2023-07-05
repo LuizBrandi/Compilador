@@ -62,34 +62,35 @@ void removeElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
 }
 
 bool findElement(unordered_map<string, SYMBOL_TYPE> hash, string key){
-        if(hash.find(key) == hash.end()){
-			return false;
-        }else{
-			return true;
-        }
+	if(hash.find(key) == hash.end()){
+		return false;
+	}else{
+		return true;
+	}
 }
 
+int buscaEscopo(vector<unordered_map<string, SYMBOL_TYPE>>& pilha, string key){
+	int indice = indiceEscopoAtual;
+
+	while(indice >= 0){
+		if(findElement(pilha[indice], key)) break;
+		indice--;
+	}
+	return indice;
+}
 
 void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
-	int auxiliar = indiceEscopoAtual;
 	//procurando o elemento nos varios escopo
-	while(auxiliar >= 0){
-		if(findElement(pilha[auxiliar], $1.label)){
-			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[auxiliar][$1.label].temp + " = " + $3.label + ";\n";
-			break;
-	}
-	auxiliar--;
-	}
-	if(auxiliar < 0){
+	int aux = buscaEscopo(pilha, $1.label);
+
+	if(aux < 0){
 		yyerror("\'" + $1.label + "\'" + " não foi declarado -----\n");
-		
 	}
-		
-	// exit(1); 
+
+	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
 }
+
 		
-
-
 SYMBOL_TYPE returnElement(unordered_map<string, SYMBOL_TYPE>& hash, string key){
     auto iter = hash.find(key);
     if(iter != hash.end()){
@@ -120,6 +121,8 @@ void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
 
 void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_TYPE> list, string key){
 	
+	//key => '1'
+	
 	bool declarado = false;
 	//key é label ou var1
 	//verificar se a key é temporaria
@@ -131,7 +134,7 @@ void verificaDeclaracao(unordered_map<string, SYMBOL_TYPE> hash, vector<SYMBOL_T
 	
 	if(!declarado){
 		if(hash.find(key) == hash.end()){
-			yyerror("\'" + key + "\'" + " não foi declarado\n");
+			yyerror("\'" + key + "\'" + " não foi declarado ------\n");
 		}
 	}
 }
@@ -157,6 +160,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 	cout << "----- " + elementS1.varName + "\n";					
 
+	//
 	verificaDeclaracao(pilha[indiceEscopoAtual], tempList, $1.label);
 	verificaDeclaracao(pilha[indiceEscopoAtual], tempList, $3.label);
 
@@ -660,9 +664,9 @@ E 			: E '+' E
 			| TK_INT
 			{
 				$$.tipo = "int";
+				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
-
 			}
 			| TK_FLOAT
 			{
@@ -670,7 +674,6 @@ E 			: E '+' E
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
-
 			}
 			| TK_TRUE
 			{
