@@ -84,8 +84,10 @@ int buscaEscopo(vector<unordered_map<string, SYMBOL_TYPE>>& pilha, string key){
 void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
 	//procurando o elemento nos varios escopo
 	int aux = buscaEscopo(pilha, $1.label);
-
-
+	
+	if(aux < 0 ){
+		yyerror("ERROR:" + $1.label + " não foi declarado.");
+	}
 
 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
 }
@@ -180,7 +182,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	//Se o indice < 0, não está na lista de temps, é uma var não declarada
 	if(indiceS1 < 0 && !(S1estaNaTemp)){
 		//erro
-		yyerror("erro");
+		yyerror("ERRO!" + $1.label + "não foi declarada.");
 	}
 	//Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
 	if(S1estaNaTemp){
@@ -446,17 +448,17 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$3.label].temp + ";\n"
-			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$1.label].temp + operacao + tempConvert.temp + ";\n";	
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceS3][$3.label].temp + ";\n"
+			+ "\t" + $$.label + " = " +  pilha[indiceS1][$1.label].temp + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == true && S3Hash == false){
 			$$.traducao = $1.traducao + $3.traducao + 
 			"\t" + tempConvert.temp +  " = " + "(float)" + $3.label + ";\n"
-			+ "\t" + $$.label + " = " +  pilha[indiceEscopoAtual][$1.label].temp + operacao + tempConvert.temp + ";\n";	
+			+ "\t" + $$.label + " = " +  pilha[indiceS1][$1.label].temp + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + 
-			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceEscopoAtual][$3.label].temp + ";\n"
+			"\t" + tempConvert.temp +  " = " + "(float)" + pilha[indiceS3][$3.label].temp + ";\n"
 			+ "\t" + $$.label + " = " +  $1.label + operacao + tempConvert.temp + ";\n";	
 		}
 		if(S1Hash == false && S3Hash == false){
@@ -612,37 +614,53 @@ COMANDO 	: E ';'
 			| TK_ID '=' TK_CHAR ';'
 			{
 				atribuicao($$, $1, $3, pilha);
-			}			
+			}		
 			| TK_ID '=' E ';'
 			{	
 				int indiceS1 = buscaEscopo(pilha, $1.label);
+				int indiceS3 = buscaEscopo(pilha, $3.label);
+
+				if(indiceS3 < 0){
+					yyerror("ERRO!" + $3.label + "não foi declarada.");
+				}
 				
+
 				if(indiceS1 >= 0){
 					SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
 					//Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
-		
-					if((value.type == $3.tipo)){
+
+					if((value.type == pilha[indiceS3][$3.label].type)){
+						cout  << "\nvalue" + value.type + "\n";
+						cout  << "\n$3tipo" + $3.tipo + "\n";
 						cout  << "aaaaaaaaaaaaaaaaaaaa";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
 						+ $3.label + ";\n";
 					}
-									
-					//Acima verificamos se o tipo é igual, se for, não alteramos em nada.
 
-					/*Entretanto, se eles forem diferentes, eu tenho que verificar se o 
-					tipo do primeiro e do segundo é BOOL, se for, atribuimos normalmente, mas
-					se eles não forem BOOL, fazemos a conversão de tipo. 
-					*/
-
-					//Se o tipo do TK_ID for diferente da Expressão, mudamos o tipo da Expressão antes da atribuição
-					else{
-						cout  << "aaaaaaaaaaaaaaaaaaaa";
-							$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceEscopoAtual][$1.label].temp + " = " + 
-							"(" + value.type + ")" + $3.label + ";\n";			
+					// cout << pilha[indiceS3][$3.label].type + "a----------\n";
+					if((value.type == $3.tipo)){
+						cout  << "\nvalue" + value.type + "\n";
+						cout  << "\n$3tipo" + $3.tipo + "\n";
+						// cout  << "aaaaaaaaaaaaaaaaaaaa";
+						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
+						+ $3.label + ";\n";
 					}
+					// if((value.type != $3.tipo)){
+					// 	// cout  << "\nvalue" + value.type + "\n";
+					// 	// cout  << "\n$3tipo" + $3.tipo + "\n";
+
+					// 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+					// 	"(" + value.type + ")" + $3.label + ";\n";			
+					// }
+					// if((value.type != pilha[indiceS3][$3.label].type)){
+					// 	cout  << "\nvalue" + value.type + "\n";
+					// 	cout  << "\n$3tipo" + $3.tipo + "\n";
+					// 	cout  << "aaaaaaaaaaaaaaaaaaaa";
+					// 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = ----" 
+					// 	+ $3.label + ";\n";
+					// }
 					
 				}else{
-					cout << "daaopksdopkasdkasddad\n";
 					yyerror($1.label + "não foi declarado\n");
 				}
 				
