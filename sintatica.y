@@ -1,4 +1,4 @@
-%{
+	%{
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -21,7 +21,9 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
+	//0 -> não é Booleano, 1 -> é boleano
 	int isBool = 0;
+	char teste;
 };
 
 typedef struct{
@@ -89,7 +91,10 @@ void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_ma
 		yyerror("ERROR:" + $1.label + " não foi declarado.");
 	}
 
-	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
+	//Se for diferente de Bool, atribuicao normal
+	if($3.isBool == 0) $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
+	//Se for Bool, atribuicao normal
+	if($3.label == "0" || $3.label == "1") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
 }
 
 		
@@ -167,14 +172,13 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	SYMBOL_TYPE elementS3;
 
 	if($1.isBool == 1 && $3.isBool != 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
-	if($1.isBool == 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + "bool" + "\n");
+	// if($1.isBool == 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
 	
 
 	//verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
 
-	
 	int indiceS1 = buscaEscopo(pilha, $1.label);
 	//true se esta na temp, false se nao esta
 	int S1estaNaTemp = procuraNaListaTemp(tempList, $1.label);
@@ -360,6 +364,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		caso = 0;
 	} 	
 	
+	
+
 	//1° caso -> int e int		
 	if(caso == 0){
 		
@@ -475,6 +481,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 void realizaOperacaoLogica(atributos& $$, atributos& $1, atributos& $3, string operacao){
 	//Se o IsBool == 1, então é booleano
+	cout << $1.isBool + "Entrou na Realiza Logica\n";
+	cout << $3.isBool + "Entrou na Realiza Logica\n";
 	if($1.isBool == 1 && $3.isBool != 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
 	if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
@@ -535,7 +543,7 @@ COMANDOS	: COMANDO COMANDOS
 				$$.traducao =  $1.traducao + $2.traducao;
 			}
 			|
-			{
+			{	
 				$$.traducao = "";
 			}
 			;
@@ -544,12 +552,13 @@ COMANDO 	: E ';'
 			| BLOCO
 			| TK_TIPO_INT TK_ID ';'
 			{
+
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
 				value.type = "int";
 				value.temp = geraIdAleatorio();
-
+				// $2.isBool = 5000;
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
@@ -570,15 +579,19 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_BOOL TK_ID ';'
 			{
+				// $$.teste = 'Z';
+				// $2.label = "pastel de frango 2 reais";
+				// $2.isBool = 1;
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				SYMBOL_TYPE value;
 				value.varName = $2.label;
-				value.type = "int";
+				value.type = "bool";
 				value.temp = geraIdAleatorio();
 				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
 				insereTempList(value.temp, value.type, tempList);
+				
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_CHAR TK_ID ';'
@@ -597,7 +610,6 @@ COMANDO 	: E ';'
 			| TK_ID '=' TK_INT ';'
 			{
 				atribuicao($$, $1, $3, pilha);
-				
 			}		
 			| TK_ID '=' TK_FLOAT ';'
 			{
@@ -609,6 +621,7 @@ COMANDO 	: E ';'
 			}			
 			| TK_ID '=' TK_FALSE ';'
 			{
+				$3.label = "0";
 				atribuicao($$, $1, $3, pilha);
 			}
 			| TK_ID '=' TK_CHAR ';'
@@ -617,53 +630,87 @@ COMANDO 	: E ';'
 			}		
 			| TK_ID '=' E ';'
 			{	
+				bool S1IsId;
+				bool S3IsId;
+				SYMBOL_TYPE elementS1;
+				SYMBOL_TYPE elementS3;
+				
+				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
 				int indiceS1 = buscaEscopo(pilha, $1.label);
-				int indiceS3 = buscaEscopo(pilha, $3.label);
-
-				if(indiceS3 < 0){
-					yyerror("ERRO!" + $3.label + "não foi declarada.");
+				//true se esta na temp, false se nao esta
+				int S1estaNaTemp = procuraNaListaTemp(tempList, $1.label);
+				
+				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+				if(indiceS1 < 0 && !(S1estaNaTemp)){
+					//erro
+					yyerror("ERRO!" + $1.label + "não foi declarada.");
+				}
+				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+				if(S1estaNaTemp){
+					S1IsId = false;
 				}
 				
-
 				if(indiceS1 >= 0){
-					SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
-					//Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
+					S1IsId = true;
+					elementS1 = returnElement(pilha[indiceS1], $1.label);
+				}
 
-					if((value.type == pilha[indiceS3][$3.label].type)){
-						cout  << "\nvalue" + value.type + "\n";
-						cout  << "\n$3tipo" + $3.tipo + "\n";
-						cout  << "aaaaaaaaaaaaaaaaaaaa";
+				int indiceS3 =  buscaEscopo(pilha, $3.label);
+				int S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
+
+				if(indiceS3 < 0 && !(S3estaNaTemp)){
+					//erro
+					yyerror("erro");
+				}
+				//Caso onde o elemento S1 é um 'number', 
+				if(S3estaNaTemp){
+					S3IsId = false;
+				}
+				if(indiceS3 >= 0){
+					S3IsId = true;
+					elementS3 = returnElement(pilha[indiceS3], $3.label);
+				}
+				
+				// SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
+				// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
+				
+				if(S1IsId == true && S3IsId == true){
+					//Caso de ID e ID 
+					if((elementS1.type == pilha[indiceS3][$3.label].type)){
+						// cout  << "\nvalue" + value.type + "\n";
+						// cout  << "\n$3tipo" + $3.tipo + "\n";
+						// cout  << "aaaaaaaaaaaaaaaaaaaa";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
-						+ $3.label + ";\n";
+						+ pilha[indiceS3][$3.label].temp + ";\n";
 					}
+					//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
+					if((elementS1.type != pilha[indiceS3][$3.label].type)){
+						// cout  << "\nvalue" + value.type + "\n";
+						// cout  << "\n$3tipo" + $3.tipo + "\n";
 
-					// cout << pilha[indiceS3][$3.label].type + "a----------\n";
-					if((value.type == $3.tipo)){
-						cout  << "\nvalue" + value.type + "\n";
-						cout  << "\n$3tipo" + $3.tipo + "\n";
+						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+						"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
+					}
+				}
+				//Caso de ID e TEMP
+				if(S1IsId == true && S3IsId == false){	
+					//Caso de ID e TEMP
+					if((elementS1.type == $3.tipo)){
+						// cout  << "\nvalue" + value.type + "\n";
+						// cout  << "\n$3tipo" + $3.tipo + "\n";
 						// cout  << "aaaaaaaaaaaaaaaaaaaa";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
 						+ $3.label + ";\n";
 					}
-					// if((value.type != $3.tipo)){
-					// 	// cout  << "\nvalue" + value.type + "\n";
-					// 	// cout  << "\n$3tipo" + $3.tipo + "\n";
+					//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
+					if((elementS1.type != $3.tipo)){
+						// cout  << "\nvalue" + value.type + "\n";
+						// cout  << "\n$3tipo" + $3.tipo + "\n";
 
-					// 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
-					// 	"(" + value.type + ")" + $3.label + ";\n";			
-					// }
-					// if((value.type != pilha[indiceS3][$3.label].type)){
-					// 	cout  << "\nvalue" + value.type + "\n";
-					// 	cout  << "\n$3tipo" + $3.tipo + "\n";
-					// 	cout  << "aaaaaaaaaaaaaaaaaaaa";
-					// 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = ----" 
-					// 	+ $3.label + ";\n";
-					// }
-					
-				}else{
-					yyerror($1.label + "não foi declarado\n");
-				}
-				
+						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+						"(" + elementS1.type + ")" + $3.label + ";\n";			
+					}
+				}		
 			}
 			;
 
@@ -701,7 +748,7 @@ E 			: E '+' E
 			| TK_CONVERT_INT E 
 			{
 				$$.tipo = "float";
-				cout << "\n\nTESTESS " + $$.tipo;  
+				// cout << "\n\nTESTESS " + $$.tipo;  
 				$$.label =  geraIdAleatorio();
 
 				SYMBOL_TYPE tempConvert;
@@ -721,6 +768,7 @@ E 			: E '+' E
 			}
 			| E '<' E
 			{
+				
 				realizaOperacao($$, $1, $3, " < ");
 			}
 			| E TK_LESS_EQUAL E
@@ -756,12 +804,17 @@ E 			: E '+' E
 				}
 			}
 			| E TK_AND E
-			{
+			{	
 				realizaOperacaoLogica($$, $1, $3, " && ");
 			}
-			| E TK_OR E{
+			
+			| E TK_OR E 
+			{
+				// $1.isBool = 0;	
+				// cout << "REGRA OU: DADOS\n" + $1.isBool + $1.label + $1.tipo + "\n";	
 				realizaOperacaoLogica($$, $1, $3, " || ");
 			}
+			
 			| TK_NOT E
 			{
 			}
@@ -781,6 +834,7 @@ E 			: E '+' E
 			}
 			| TK_TRUE
 			{
+			
 				$$.tipo = "int";
 				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
@@ -789,6 +843,7 @@ E 			: E '+' E
 			}
 			| TK_FALSE
 			{
+
 				$$.tipo = "int";
 				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
