@@ -1,8 +1,11 @@
 int main()
 {	
-	bool f;
-	int c;
-	f = true;
-	
-	c = true || f;
+	bool a;
+	a = true;
+	int b;
+	b = 1;
+	bool c;
+	{
+		c = a || 10.4;
+	}
 }
