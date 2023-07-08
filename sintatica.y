@@ -32,6 +32,7 @@ typedef struct{
 	string temp;
 	string isBool;
 	string value;
+	string stringSize;
 } SYMBOL_TYPE;
 
 unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
@@ -95,6 +96,10 @@ void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_ma
 	
 	// if($3.label == "true") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + "true" + ";\n";
 	pilha[aux][$1.label].value = $3.label;
+	// if(pilha[aux][$1.label].type == "string"){
+	// 	$$.traducao = $1.traducao + $3.traducao + "\t" + "strcpy()"pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
+	// }
+
 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
 }
 
@@ -115,15 +120,19 @@ void printHash(unordered_map<string, SYMBOL_TYPE> hash){
 }
 
 void printList(vector<SYMBOL_TYPE> list){
-	for(int i =0; i < list.size(); i++){
-		cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
+	for(int i = 0; i < list.size(); i++){
+		// cout << list[i].varName + "\n";
+		if(list[i].type == "string" && list[i].stringSize == "0") cout << "\t" << "char" << " " << list[i].varName << ";\n";
+		if(list[i].type == "string" && list[i].stringSize != "0") cout << "\t" << "char" << " " << list[i].varName << "[" << list[i].stringSize << "]" << ";\n";
+		if(list[i].type != "string")cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
 	}
 } 
 
-void insereTempList(string label, string tipo, vector<SYMBOL_TYPE>& tempList){
+void insereTempList(string label, string tipo, int tamanho, vector<SYMBOL_TYPE>& tempList){
 	SYMBOL_TYPE temp;
 	temp.varName = label;
 	temp.type = tipo;
+	temp.stringSize = to_string(tamanho);
 	tempList.push_back(temp);
 }
 
@@ -401,7 +410,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		SYMBOL_TYPE tempConvert;
 		tempConvert.temp = geraIdAleatorio();
 		tempConvert.type = "float";
-		insereTempList(tempConvert.temp, tempConvert.type, tempList);
+		insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
 		//Criando o label da var que vai receber a conversão
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
@@ -443,7 +452,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		SYMBOL_TYPE tempConvert;
 		tempConvert.temp = geraIdAleatorio();
 		tempConvert.type = "float";
-		insereTempList(tempConvert.temp, tempConvert.type, tempList);
+		insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
 
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
@@ -471,14 +480,14 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	}	
 	
 	value.temp = $$.label;				
-	insereTempList(value.temp, value.type, tempList);
+	insereTempList(value.temp, value.type, 0, tempList);
 	
 }
 
 %}
 
-%token TK_INT TK_FLOAT TK_CHAR TK_TIPO_BOOL TK_TRUE TK_FALSE
-%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR
+%token TK_INT TK_FLOAT TK_CHAR TK_TIPO_BOOL TK_TRUE TK_FALSE TK_STRING
+%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_STRING
 %token TK_CONVERT_FLOAT TK_CONVERT_INT
 %token TK_FIM TK_ERROR
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
@@ -544,7 +553,7 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, tempList);
+				insereTempList(value.temp, value.type, 0, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_FLOAT TK_ID ';'
@@ -557,7 +566,7 @@ COMANDO 	: E ';'
 				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, tempList);
+				insereTempList(value.temp, value.type, 0, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_BOOL TK_ID ';'
@@ -573,7 +582,7 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, tempList);
+				insereTempList(value.temp, value.type, 0, tempList);
 				
 				$$.traducao = $1.traducao + $2.traducao;
 			}
@@ -586,7 +595,20 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, tempList);
+				insereTempList(value.temp, value.type, 0, tempList);
+				$$.traducao = $1.traducao + $2.traducao;
+			}
+			| TK_TIPO_STRING TK_ID ';'
+			{
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "string";
+				value.stringSize = "0";
+				value.temp = geraIdAleatorio();				
+				//insere id na tabela de simbolos
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
+				insereTempList(value.temp, value.type, 0, tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_ID '=' TK_INT ';'
@@ -617,7 +639,11 @@ COMANDO 	: E ';'
 			| TK_ID '=' TK_CHAR ';'
 			{
 				atribuicao($$, $1, $3, pilha);
-			}		
+			}
+			| TK_ID '=' TK_STRING ';'
+			{
+				atribuicao($$, $1, $3, pilha);
+			}			
 			| TK_ID '=' E ';'
 			{	
 				bool S1IsId;
@@ -774,7 +800,7 @@ COISAS		: TK_VIRGULA E COISAS
 				if(element.type == "int"){
 					string valor = element.value;
 					int stringSize = valor.size();
-					$$.traducao = $2.traducao + $3.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
+					// $$.traducao = $2.traducao + $3.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
 				}
 				$$.traducao = $2.traducao + $3.traducao;
 			}
@@ -823,7 +849,7 @@ E 			: E '+' E
 				SYMBOL_TYPE tempConvert;
 				tempConvert.temp = $$.label;
 				tempConvert.type = $$.tipo;
-				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+				insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
 
 				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")--" + $2.label + ";\n";
 			}
@@ -836,7 +862,7 @@ E 			: E '+' E
 				SYMBOL_TYPE tempConvert;
 				tempConvert.temp = $$.label;
 				tempConvert.type = $$.tipo;
-				insereTempList(tempConvert.temp, tempConvert.type, tempList);
+				insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
 
 				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
 			}
@@ -880,7 +906,7 @@ E 			: E '+' E
 					$$.label = geraIdAleatorio();	
 					value.varName = $$.label;
 					value.type =  "int";
-					insereTempList(value.varName, value.type, tempList);
+					insereTempList(value.varName, value.type, 0, tempList);
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " % " + $3.label + ";\n";
 				}
@@ -904,14 +930,14 @@ E 			: E '+' E
 			{
 				$$.tipo = "int";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, tempList);
+				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_FLOAT
 			{
 				$$.tipo = "float";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, tempList);
+				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_TRUE
@@ -920,7 +946,7 @@ E 			: E '+' E
 				$$.tipo = "bool";
 				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, tempList);
+				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
@@ -929,16 +955,24 @@ E 			: E '+' E
 				$$.tipo = "bool";
 				$$.isBool = 1;
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, tempList);
+				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
 			}
 			| TK_CHAR
 			{
 				$$.tipo = "char";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, tempList);
+				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";	
 					
+			}
+			| TK_STRING
+			{
+				cout << "AAAAA\n";
+				$$.tipo = "string";
+				$$.label =  geraIdAleatorio();
+				insereTempList($$.label, $$.tipo, $1.label.size() - 1, tempList);
+				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";		
 			}
 			| TK_ID
 			{

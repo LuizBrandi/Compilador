@@ -1,17 +1,13 @@
 int main()
 {	
-	int a;
-    a = 1;
-    int b;
-    b = 0;
-    print(a, b);
-
+    int a;
+    a = 1 + 1;
 }
 int var0;  
 int var1;  
 var0 = 1;  
 var1 = 0;
-  
+
 cout << var0;
 return 0;
 

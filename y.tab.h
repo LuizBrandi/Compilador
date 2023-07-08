@@ -55,24 +55,26 @@ extern int yydebug;
     TK_TIPO_BOOL = 261,
     TK_TRUE = 262,
     TK_FALSE = 263,
-    TK_MAIN = 264,
-    TK_ID = 265,
-    TK_TIPO_INT = 266,
-    TK_TIPO_FLOAT = 267,
-    TK_TIPO_CHAR = 268,
-    TK_CONVERT_FLOAT = 269,
-    TK_CONVERT_INT = 270,
-    TK_FIM = 271,
-    TK_ERROR = 272,
-    TK_GREATER_EQUAL = 273,
-    TK_LESS_EQUAL = 274,
-    TK_EQUAL_EQUAL = 275,
-    TK_NOT_EQUAL = 276,
-    TK_AND = 277,
-    TK_OR = 278,
-    TK_NOT = 279,
-    TK_VIRGULA = 280,
-    TK_PRINT = 281
+    TK_STRING = 264,
+    TK_MAIN = 265,
+    TK_ID = 266,
+    TK_TIPO_INT = 267,
+    TK_TIPO_FLOAT = 268,
+    TK_TIPO_CHAR = 269,
+    TK_TIPO_STRING = 270,
+    TK_CONVERT_FLOAT = 271,
+    TK_CONVERT_INT = 272,
+    TK_FIM = 273,
+    TK_ERROR = 274,
+    TK_GREATER_EQUAL = 275,
+    TK_LESS_EQUAL = 276,
+    TK_EQUAL_EQUAL = 277,
+    TK_NOT_EQUAL = 278,
+    TK_AND = 279,
+    TK_OR = 280,
+    TK_NOT = 281,
+    TK_VIRGULA = 282,
+    TK_PRINT = 283
   };
 #endif
 /* Tokens.  */
@@ -82,24 +84,26 @@ extern int yydebug;
 #define TK_TIPO_BOOL 261
 #define TK_TRUE 262
 #define TK_FALSE 263
-#define TK_MAIN 264
-#define TK_ID 265
-#define TK_TIPO_INT 266
-#define TK_TIPO_FLOAT 267
-#define TK_TIPO_CHAR 268
-#define TK_CONVERT_FLOAT 269
-#define TK_CONVERT_INT 270
-#define TK_FIM 271
-#define TK_ERROR 272
-#define TK_GREATER_EQUAL 273
-#define TK_LESS_EQUAL 274
-#define TK_EQUAL_EQUAL 275
-#define TK_NOT_EQUAL 276
-#define TK_AND 277
-#define TK_OR 278
-#define TK_NOT 279
-#define TK_VIRGULA 280
-#define TK_PRINT 281
+#define TK_STRING 264
+#define TK_MAIN 265
+#define TK_ID 266
+#define TK_TIPO_INT 267
+#define TK_TIPO_FLOAT 268
+#define TK_TIPO_CHAR 269
+#define TK_TIPO_STRING 270
+#define TK_CONVERT_FLOAT 271
+#define TK_CONVERT_INT 272
+#define TK_FIM 273
+#define TK_ERROR 274
+#define TK_GREATER_EQUAL 275
+#define TK_LESS_EQUAL 276
+#define TK_EQUAL_EQUAL 277
+#define TK_NOT_EQUAL 278
+#define TK_AND 279
+#define TK_OR 280
+#define TK_NOT 281
+#define TK_VIRGULA 282
+#define TK_PRINT 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -12,6 +12,7 @@ NUM {DIGITO}+
 REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
+STRING \"([^\"\\]|\\.)*\"
 
 
 %%
@@ -29,6 +30,8 @@ ID {LETRA}({LETRA}|{NUM})*
 "bool"      {return TK_TIPO_BOOL; }
 
 "char"      {return TK_TIPO_CHAR; }
+
+"string"      {return TK_TIPO_STRING; }
 
 "true"      {return TK_TRUE; }
 
@@ -67,6 +70,7 @@ ID {LETRA}({LETRA}|{NUM})*
 {REAL}      { yylval.label = yytext; return TK_FLOAT; }
 {ID}		{ yylval.label = yytext; return TK_ID; }
 {CHAR}      { yylval.label = yytext; return TK_CHAR; }
+{STRING}      { yylval.label = yytext; return TK_STRING; }
 .			{ *yytext; }
 
 %%
