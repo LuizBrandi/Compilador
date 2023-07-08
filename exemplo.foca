@@ -7,6 +7,13 @@ int main()
     print(a, b);
 
 }
+int var0;  
+int var1;  
+var0 = 1;  
+var1 = 0;
+  
+cout << var0;
+return 0;
 
 cout << var0 + var1 + var3;
 cout < var0;

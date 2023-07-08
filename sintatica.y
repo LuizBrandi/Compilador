@@ -31,6 +31,7 @@ typedef struct{
 	string type;
 	string temp;
 	string isBool;
+	string value;
 } SYMBOL_TYPE;
 
 unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
@@ -93,7 +94,7 @@ void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_ma
 	}
 	
 	// if($3.label == "true") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + "true" + ";\n";
-
+	pilha[aux][$1.label].value = $3.label;
 	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
 }
 
@@ -590,7 +591,6 @@ COMANDO 	: E ';'
 			}
 			| TK_ID '=' TK_INT ';'
 			{
-				cout << " asd´plsdl´pasl´pdlas´pd\n" +  $3.label;
 				atribuicao($$, $1, $3, pilha);
 			}		
 			| TK_ID '=' TK_FLOAT ';'
@@ -735,24 +735,48 @@ COMANDO 	: E ';'
 				}
 
 				//Quando o COISAS TA VAZIO 
-				if($4.label == "") $$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";						
-				// if($4.label != ""){
-				// 	//pegar o que tem no coisas, guardar numa variavel e depois printar
-				// 	$$.traducao = $3.traducao + "\t" + "cout" + " << " + elementS1.temp +  ";\n";		
-				// } 
+				if($4.label == "") $$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
+
+				if($4.label != ""){
+					//pegar o que tem no coisas, guardar numa variavel e depois printar
+					$$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";	
+				} 
 				
 			}
 			;
 
 COISAS		: TK_VIRGULA E COISAS
-			{
-				// if($2 == '\n') {
-				// 	pulouLinha = 1;
-				// }
+			{	
+				bool S1IsId;
+				bool S3IsId;
+				
+				SYMBOL_TYPE element;
+				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
+				int indiceS1 = buscaEscopo(pilha, $2.label);
+				//true se esta na temp, false se nao esta
+				int S1estaNaTemp = procuraNaListaTemp(tempList, $2.label);
+				
+				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+				if(indiceS1 < 0 && !(S1estaNaTemp)){
+					//erro
+					yyerror("ERRO!" + $3.label + "não foi declarada.");
+				}
+				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+				if(S1estaNaTemp){
+					S1IsId = false;
+				}
+				
+				if(indiceS1 >= 0){
+					S1IsId = true;
+					element = returnElement(pilha[indiceS1], $2.label);
+				}
+		
+				if(element.type == "int"){
+					string valor = element.value;
+					int stringSize = valor.size();
+					$$.traducao = $2.traducao + $3.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
+				}
 				$$.traducao = $2.traducao + $3.traducao;
-				// $$.traducao = $3.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
-
-				cout << a << b;
 			}
 			|
 			{
