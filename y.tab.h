@@ -70,7 +70,9 @@ extern int yydebug;
     TK_NOT_EQUAL = 276,
     TK_AND = 277,
     TK_OR = 278,
-    TK_NOT = 279
+    TK_NOT = 279,
+    TK_VIRGULA = 280,
+    TK_PRINT = 281
   };
 #endif
 /* Tokens.  */
@@ -96,6 +98,8 @@ extern int yydebug;
 #define TK_AND 277
 #define TK_OR 278
 #define TK_NOT 279
+#define TK_VIRGULA 280
+#define TK_PRINT 281
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

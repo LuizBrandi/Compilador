@@ -52,6 +52,9 @@ ID {LETRA}({LETRA}|{NUM})*
 
 "!"         {return TK_NOT; }
 
+","         {return TK_VIRGULA; }
+
+"print"     {return TK_PRINT; }
 
 [(){}[\];,]	{ return *yytext; }
 
