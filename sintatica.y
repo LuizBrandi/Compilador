@@ -96,11 +96,7 @@ void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_ma
 	
 	// if($3.label == "true") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + "true" + ";\n";
 	pilha[aux][$1.label].value = $3.label;
-	// if(pilha[aux][$1.label].type == "string"){
-	// 	$$.traducao = $1.traducao + $3.traducao + "\t" + "strcpy()"pilha[aux][$1.label].temp + " = " + $3.label + ";\n";
-	// }
-
-	$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
+	if(pilha[aux][$1.label].type != "string") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
 }
 
 		
@@ -122,7 +118,7 @@ void printHash(unordered_map<string, SYMBOL_TYPE> hash){
 void printList(vector<SYMBOL_TYPE> list){
 	for(int i = 0; i < list.size(); i++){
 		// cout << list[i].varName + "\n";
-		if(list[i].type == "string" && list[i].stringSize == "0") cout << "\t" << "char" << " " << list[i].varName << ";\n";
+		if(list[i].type == "string" && list[i].stringSize == "0") cout << "\t" << "char *" << " " << list[i].varName << ";\n";
 		if(list[i].type == "string" && list[i].stringSize != "0") cout << "\t" << "char" << " " << list[i].varName << "[" << list[i].stringSize << "]" << ";\n";
 		if(list[i].type != "string")cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
 	}
@@ -166,6 +162,17 @@ bool procuraNaListaTemp(vector<SYMBOL_TYPE> list, string key){
 		}
 	}	
 	return declarado;
+}
+
+SYMBOL_TYPE retornaListaTemp(vector<SYMBOL_TYPE> list, string key){
+	SYMBOL_TYPE element;
+	for(int i =0; i < list.size(); i++){
+		if(list[i].varName == key){
+			element = list[i];
+			break;
+		}
+	}	
+	return element;
 }
 
 
@@ -640,10 +647,10 @@ COMANDO 	: E ';'
 			{
 				atribuicao($$, $1, $3, pilha);
 			}
-			| TK_ID '=' TK_STRING ';'
+			/* | TK_ID '=' TK_STRING ';'
 			{
 				atribuicao($$, $1, $3, pilha);
-			}			
+			}			 */
 			| TK_ID '=' E ';'
 			{	
 				bool S1IsId;
@@ -707,9 +714,17 @@ COMANDO 	: E ';'
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
 						"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
 					}
+
+					if(pilha[indiceS1][$1.label].type == "string"){
+						cout << "BBBBBB\n";
+						$$.traducao = $1.traducao + $3.traducao + "\t" + 
+						pilha[indiceS1][$1.label].temp + " = " + "malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
+						"\t" + "strcpy(" + pilha[indiceS1][$1.label].temp + ", " + pilha[indiceS3][$3.label].temp + ")"  + ";\n";
+					}
 				}
 				//Caso de ID e TEMP
-				if(S1IsId == true && S3IsId == false){	
+				if(S1IsId == true && S3IsId == false){
+					elementS3 = retornaListaTemp(tempList, $3.label);	
 					//Caso de ID e TEMP
 					if((elementS1.type == $3.tipo)){
 						// cout  << "\nvalue" + value.type + "\n";
@@ -725,6 +740,12 @@ COMANDO 	: E ';'
 
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
 						"(" + elementS1.type + ")" + $3.label + ";\n";			
+					}
+
+					if(pilha[indiceS1][$1.label].type == "string"){
+						$$.traducao = $1.traducao + $3.traducao + "\t" + 
+						pilha[indiceS1][$1.label].temp + " = " + "malloc(" + elementS3.stringSize + ")" + ";\n" +
+						"\t" + string("strcpy(") + pilha[indiceS1][$1.label].temp + ", " + $3.label + ")"  + ";\n";
 					}
 				}		
 			}
@@ -811,19 +832,6 @@ COISAS		: TK_VIRGULA E COISAS
 			;
 
 
-
-/* COMANDO : print(E COISAS)
-
-COISAS : TK_VIRGULA E COISAS
-		|
-print(E TK_VIRGULA coisas)
-
-TK_VIRGULA : coisas TK_VIRGULA
-
-cout << E coisas
-
-coisas : E coisas */
-
 E 			: E '+' E
 			{		
 				realizaOperacao($$, $1, $3, " + ");				
@@ -851,7 +859,7 @@ E 			: E '+' E
 				tempConvert.type = $$.tipo;
 				insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
 
-				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")--" + $2.label + ";\n";
+				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
 			}
 			| TK_CONVERT_INT E 
 			{
@@ -876,7 +884,6 @@ E 			: E '+' E
 			}
 			| E '<' E
 			{
-				
 				realizaOperacao($$, $1, $3, " < ");
 			}
 			| E TK_LESS_EQUAL E
@@ -972,7 +979,7 @@ E 			: E '+' E
 				$$.tipo = "string";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, $1.label.size() - 1, tempList);
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";		
+				$$.traducao = "\t" + string("strcpy(") + $$.label + ", " +  $1.label + ")" + ";\n";		
 			}
 			| TK_ID
 			{
