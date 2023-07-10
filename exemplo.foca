@@ -1,33 +1,7 @@
 int main()
 {	
-    string a;
-    string b;
-    b = "oi, cringe";
-    a = b;
+    int a;
+    a = 1;
+    if(1){
+    }
 }
-int var0;  
-int var1;  
-var0 = 1;  
-var1 = 0;
-
-cout << var0;
-return 0;
-
-cout << var0 + var1 + var3;
-cout < var0;
-cout < var1;
-cout < var3;
-
-var3 = var1var2;
-
-print(a, "\n");
-
-print("uma frase");
-print(1000);
-
-print("uma frase", 1000);
-
-int var0;        
-int var1;
-var3 = var0 + var1;        
-cout << var3;

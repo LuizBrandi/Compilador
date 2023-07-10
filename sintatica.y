@@ -13,6 +13,7 @@ using namespace std;
 
 // contador pra gerar ids 
 int contador = 0;
+int labelBloco = 0;
 int indiceEscopoAtual = 0;
 
 
@@ -43,7 +44,14 @@ vector<SYMBOL_TYPE> tempList;
 
 int yylex(void);
 void yyerror(string);
-string geraIdAleatorio();
+
+string geraIdAleatorio(){
+	return "var" + to_string(contador++);
+}
+
+string geraLabelBloco(){
+	return to_string(labelBloco++);
+}
 
 void empilha(vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
     pilha.push_back(unordered_map<string, SYMBOL_TYPE>());
@@ -500,6 +508,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 %token TK_AND TK_OR TK_NOT
 %token TK_VIRGULA TK_PRINT
+%token TK_IF
 
 
 %start S
@@ -776,9 +785,59 @@ COMANDO 	: E ';'
 				if($4.label != ""){
 					//pegar o que tem no coisas, guardar numa variavel e depois printar
 					$$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";	
-				} 
-				
+				} 	
 			}
+			| TK_IF '(' E ')' BLOCO
+			{
+				bool S3IsId;
+				SYMBOL_TYPE elementS3;
+
+				int indiceS3 = buscaEscopo(pilha, $3.label);
+				//true se esta na temp, false se nao esta
+				bool S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
+				
+				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+				if(indiceS3 < 0 && !(S3estaNaTemp)){
+					//erro
+					yyerror("ERRO!" + $3.label + "não foi declarada.");
+				}
+				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+				if(S3estaNaTemp){
+					S3IsId = false;
+				}
+				
+				if(indiceS3 >= 0){
+					S3IsId = true;
+					elementS3 = returnElement(pilha[indiceS3], $3.label);
+				}
+
+				if(S3IsId){
+					string idBloco = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = elementS3.type;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + $3.label + ";\n" +
+					"\t" + "if(" + elementS3.temp + ") " + "goto " + "FIM_IF" + idBloco + ";\n" +
+					$5.traducao +
+					"\t" + "FIM_IF" + idBloco + ":\n";
+				}
+
+				if(!S3IsId){
+					string idBloco = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = $3.tipo;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + $3.label + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_IF" + idBloco + ";\n" +
+					$5.traducao +
+					"\t" + "FIM_IF" + idBloco + ":\n";
+				}
+			}
+			
 			;
 
 COISAS		: TK_VIRGULA E COISAS
@@ -1005,6 +1064,3 @@ void yyerror( string MSG )
 	exit(0);
 }				
 
-string geraIdAleatorio(){
-	return "var" + to_string(contador++);
-}

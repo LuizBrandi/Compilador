@@ -23,6 +23,8 @@ STRING \"([^\"\\]|\\.)*\"
 
 "main"		{return TK_MAIN; }
 
+"if"		{return TK_IF; }
+
 "int"		{return TK_TIPO_INT; }
 
 "float"     {return TK_TIPO_FLOAT; }
