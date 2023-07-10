@@ -700,17 +700,11 @@ COMANDO 	: E ';'
 				if(S1IsId == true && S3IsId == true){
 					//Caso de ID e ID 
 					if((elementS1.type == pilha[indiceS3][$3.label].type)){
-						// cout  << "\nvalue" + value.type + "\n";
-						// cout  << "\n$3tipo" + $3.tipo + "\n";
-						// cout  << "aaaaaaaaaaaaaaaaaaaa";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
 						+ pilha[indiceS3][$3.label].temp + ";\n";
 					}
 					//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
 					if((elementS1.type != pilha[indiceS3][$3.label].type)){
-						// cout  << "\nvalue" + value.type + "\n";
-						// cout  << "\n$3tipo" + $3.tipo + "\n";
-
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
 						"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
 					}
@@ -718,7 +712,7 @@ COMANDO 	: E ';'
 					if(pilha[indiceS1][$1.label].type == "string"){
 						cout << "BBBBBB\n";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + 
-						pilha[indiceS1][$1.label].temp + " = " + "malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
+						pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
 						"\t" + "strcpy(" + pilha[indiceS1][$1.label].temp + ", " + pilha[indiceS3][$3.label].temp + ")"  + ";\n";
 					}
 				}
@@ -727,24 +721,19 @@ COMANDO 	: E ';'
 					elementS3 = retornaListaTemp(tempList, $3.label);	
 					//Caso de ID e TEMP
 					if((elementS1.type == $3.tipo)){
-						// cout  << "\nvalue" + value.type + "\n";
-						// cout  << "\n$3tipo" + $3.tipo + "\n";
-						// cout  << "aaaaaaaaaaaaaaaaaaaa";
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
 						+ $3.label + ";\n";
 					}
 					//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
 					if((elementS1.type != $3.tipo)){
-						// cout  << "\nvalue" + value.type + "\n";
-						// cout  << "\n$3tipo" + $3.tipo + "\n";
-
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
 						"(" + elementS1.type + ")" + $3.label + ";\n";			
 					}
 
 					if(pilha[indiceS1][$1.label].type == "string"){
+						pilha[indiceS1][$1.label].stringSize = elementS3.stringSize;
 						$$.traducao = $1.traducao + $3.traducao + "\t" + 
-						pilha[indiceS1][$1.label].temp + " = " + "malloc(" + elementS3.stringSize + ")" + ";\n" +
+						pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + elementS3.stringSize + ")" + ";\n" +
 						"\t" + string("strcpy(") + pilha[indiceS1][$1.label].temp + ", " + $3.label + ")"  + ";\n";
 					}
 				}		

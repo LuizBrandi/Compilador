@@ -1,7 +1,9 @@
 int main()
 {	
     string a;
-    a = "oi";
+    string b;
+    b = "oi, cringe";
+    a = b;
 }
 int var0;  
 int var1;  
