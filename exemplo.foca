@@ -1,7 +1,14 @@
 int main()
 {	
     int a;
-    a = 1;
-    if(1){
+    a =5;
+    if(a > 0){
+        a = a + 1;
+    } else{
+        int b;
+        b = 300;
+        if(b > 5){
+            b = 1;
+        }
     }
 }

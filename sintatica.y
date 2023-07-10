@@ -508,7 +508,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 %token TK_AND TK_OR TK_NOT
 %token TK_VIRGULA TK_PRINT
-%token TK_IF
+%token TK_IF TK_ELSE
 
 
 %start S
@@ -837,7 +837,64 @@ COMANDO 	: E ';'
 					"\t" + "FIM_IF" + idBloco + ":\n";
 				}
 			}
-			
+			| TK_IF '(' E ')' BLOCO TK_ELSE BLOCO
+			{
+				bool S3IsId;
+				SYMBOL_TYPE elementS3;
+
+				int indiceS3 = buscaEscopo(pilha, $3.label);
+				//true se esta na temp, false se nao esta
+				bool S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
+				
+				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+				if(indiceS3 < 0 && !(S3estaNaTemp)){
+					//erro
+					yyerror("ERRO!" + $3.label + "não foi declarada.");
+				}
+				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+				if(S3estaNaTemp){
+					S3IsId = false;
+				}
+				
+				if(indiceS3 >= 0){
+					S3IsId = true;
+					elementS3 = returnElement(pilha[indiceS3], $3.label);
+				}
+
+				if(S3IsId){
+					string idBloco = geraLabelBloco();
+					string idElse = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = elementS3.type;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + elementS3.temp + ";\n" +
+					"\t" + "if(" + elementS3.temp + ") " + "goto " + "INICIO_ELSE" + idElse + ";\n" +
+					$5.traducao +
+					"\t" + "goto " + "FIM_IF" + idBloco + ";\n" +
+					"\t" + "INICIO_ELSE" + idElse + ":\n" +
+					$7.traducao +
+					"\t" + "FIM_IF" + idBloco + ":\n";
+				}
+
+				if(!S3IsId){
+					string idBloco = geraLabelBloco();
+					string idElse = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = $3.tipo;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + $3.label + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "INICIO_ELSE" + idElse + ";\n" +
+					$5.traducao +
+					"\t" + "goto " + "FIM_IF" + idBloco + ";\n" +
+					"\t" + "INICIO_ELSE" + idElse + ":\n" +
+					$7.traducao +
+					"\t" + "FIM_IF" + idBloco + ":\n";
+				}
+			}
 			;
 
 COISAS		: TK_VIRGULA E COISAS
