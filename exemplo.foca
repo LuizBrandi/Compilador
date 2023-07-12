@@ -1,6 +1,6 @@
 int main()
 {	
-  if(true){
+  while(1 > 0){
     int a;
     a = 1;
   }
