@@ -23,7 +23,7 @@ struct atributos
 	string traducao;
 	string tipo;
 	//0 -> não é Booleano, 1 -> é boleano
-	int isBool = 0;
+	string isBool;
 	char teste;
 };
 
@@ -104,7 +104,9 @@ void atribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_ma
 	
 	// if($3.label == "true") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + "true" + ";\n";
 	pilha[aux][$1.label].value = $3.label;
-	if(pilha[aux][$1.label].type != "string") $$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
+	if(pilha[aux][$1.label].type != "string"){
+		$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[aux][$1.label].temp + " = " + $3.label + ";\n";	
+	} 
 }
 
 		
@@ -191,6 +193,7 @@ void verificaDeclaracaoPrevia(unordered_map<string, SYMBOL_TYPE> hash, string ke
 }
 
 void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operacao){
+
 	bool S1Hash;
 	bool S3Hash;
 	SYMBOL_TYPE elementS1;
@@ -237,9 +240,9 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 	cout << elementS1.isBool + "\n";
 	//ID(bool) e QUALQUER COISA
-	if(elementS1.isBool == "bool" && $3.tipo != "bool") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
+	if(elementS1.isBool == "bool" && $3.isBool != "bool") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
 	//QUALQUER COISA e ID(bool) 
-	if($1.tipo != "bool" && elementS3.isBool == "bool") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
+	if($1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	//ID(bool) e ID(não é booleano)
 	if(elementS1.isBool == "bool" && elementS3.isBool != "bool") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + "bool" + " e " + $3.label + " é do tipo " + elementS3.type + "\n");
 	//ID(não é booleano) e ID(bool)
@@ -384,14 +387,24 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		caso = 0;
 	} 	
 	
+	//aqui
+	//Se o operador for logico, ou relacional, mudamos o tipo da variavel auxiliar para armazenar ele 
+	if(operacao == " > " || operacao == " < " || operacao == " >= " || operacao == " =< " 
+	|| operacao == " || " || operacao == " && " || operacao == " != " || operacao == " == "){
+		//verificar o 
+	}
 	
-
 	//1° caso -> int e int		
 	if(caso == 0){
 		
 		caso = 0;
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
+		// //Se o operador for logico, ou relacional, mudamos o tipo da variavel auxiliar para armazenar ele 
+		if(operacao == " > " || operacao == " < " || operacao == " >= " || operacao == " =< " 
+		|| operacao == " || " || operacao == " && " || operacao == " != " || operacao == " == "){
+			$$.isBool = "bool";
+		}
 		//Quando é um ID operacao com ID
 		if(S1Hash == true && S3Hash == true){
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
@@ -410,9 +423,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		//Quando é um temp(1, 2, ... 999999) operacao temp(1, 2, ... 999999)
 		
 		if(S1Hash == false && S3Hash == false){
-			cout << "adopkaplasd\n";
-			
-			
+			// cout << "adopkaplasd\n";	
 			$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 			$1.label  + operacao + $3.label + ";\n";			
 		}
@@ -662,6 +673,7 @@ COMANDO 	: E ';'
 			}			 */
 			| TK_ID '=' E ';'
 			{	
+				//o tipo do tk id e do E tem q ser verificado
 				bool S1IsId;
 				bool S3IsId;
 				SYMBOL_TYPE elementS1;
@@ -707,6 +719,7 @@ COMANDO 	: E ';'
 				// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
 				
 				if(S1IsId == true && S3IsId == true){
+					if(elementS1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Atribuição inválida!\n");
 					//Caso de ID e ID 
 					if((elementS1.type == pilha[indiceS3][$3.label].type)){
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
@@ -727,7 +740,11 @@ COMANDO 	: E ';'
 				}
 				//Caso de ID e TEMP
 				if(S1IsId == true && S3IsId == false){
+					if(elementS1.isBool != "bool" && $3.isBool == "bool") yyerror("Atribuição inválida!\n");
+
+					//precisamos fazer isso para verificar o tamanho da string
 					elementS3 = retornaListaTemp(tempList, $3.label);	
+
 					//Caso de ID e TEMP
 					if((elementS1.type == $3.tipo)){
 						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
@@ -812,6 +829,7 @@ COMANDO 	: E ';'
 				}
 
 				if(S3IsId){
+					if(elementS3.type != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idBloco = geraLabelBloco();
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
@@ -825,6 +843,7 @@ COMANDO 	: E ';'
 				}
 
 				if(!S3IsId){
+					if($3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idBloco = geraLabelBloco();
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
@@ -862,6 +881,7 @@ COMANDO 	: E ';'
 				}
 
 				if(S3IsId){
+					if(elementS3.type != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idBloco = geraLabelBloco();
 					string idElse = geraLabelBloco();
 					SYMBOL_TYPE value;
@@ -879,6 +899,7 @@ COMANDO 	: E ';'
 				}
 
 				if(!S3IsId){
+					if($3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idBloco = geraLabelBloco();
 					string idElse = geraLabelBloco();
 					SYMBOL_TYPE value;
@@ -982,6 +1003,7 @@ E 			: E '+' E
 			| E '>' E
 			{
 				realizaOperacao($$, $1, $3, " > ");
+				
 			}
 			| E TK_GREATER_EQUAL E
 			{
@@ -1030,8 +1052,6 @@ E 			: E '+' E
 			
 			| E TK_OR E 
 			{
-				// $1.isBool = 0;	
-				// cout << "REGRA OU: DADOS\n" + $1.isBool + $1.label + $1.tipo + "\n";	
 				realizaOperacao($$, $1, $3, " || ");
 			}
 			
@@ -1054,18 +1074,16 @@ E 			: E '+' E
 			}
 			| TK_TRUE
 			{
-				string tipo = "int";
-				$$.tipo = "bool";
-				$$.isBool = 1;
+				$$.tipo = "int";
+				$$.isBool = "bool";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
 			{
-				string tipo = "int";
-				$$.tipo = "bool";
-				$$.isBool = 1;
+				$$.tipo = "int";
+				$$.isBool = "bool";
 				$$.label =  geraIdAleatorio();
 				insereTempList($$.label, $$.tipo, 0, tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
