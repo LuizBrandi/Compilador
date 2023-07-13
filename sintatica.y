@@ -506,8 +506,100 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	}	
 	
 	value.temp = $$.label;				
-	insereTempList(value.temp, value.type, 0, tempList);
+	insereTempList(value.temp, value.type, 0, tempList);	
+}
+
+void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+	//o tipo do tk id e do E tem q ser verificado
+	bool S1IsId;
+	bool S3IsId;
+	SYMBOL_TYPE elementS1;
+	SYMBOL_TYPE elementS3;
 	
+	// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
+	int indiceS1 = buscaEscopo(pilha, $1.label);
+	//true se esta na temp, false se nao esta
+	int S1estaNaTemp = procuraNaListaTemp(tempList, $1.label);
+	
+	// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+	if(indiceS1 < 0 && !(S1estaNaTemp)){
+		//erro
+		yyerror("ERRO!" + $1.label + "não foi declarada.");
+	}
+	// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+	if(S1estaNaTemp){
+		S1IsId = false;
+	}
+	
+	if(indiceS1 >= 0){
+		S1IsId = true;
+		elementS1 = returnElement(pilha[indiceS1], $1.label);
+	}
+
+	int indiceS3 =  buscaEscopo(pilha, $3.label);
+	int S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
+
+	if(indiceS3 < 0 && !(S3estaNaTemp)){
+		//erro
+		yyerror("erro");
+	}
+	//Caso onde o elemento S1 é um 'number', 
+	if(S3estaNaTemp){
+		S3IsId = false;
+	}
+	if(indiceS3 >= 0){
+		S3IsId = true;
+		elementS3 = returnElement(pilha[indiceS3], $3.label);
+	}
+	
+	// SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
+	// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
+	
+	if(S1IsId == true && S3IsId == true){
+		if(elementS1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Atribuição inválida!\n");
+		//Caso de ID e ID 
+		if((elementS1.type == pilha[indiceS3][$3.label].type)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
+			+ pilha[indiceS3][$3.label].temp + ";\n";
+		}
+		//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
+		if((elementS1.type != pilha[indiceS3][$3.label].type)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+			"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
+		}
+
+		if(pilha[indiceS1][$1.label].type == "string"){
+			cout << "BBBBBB\n";
+			$$.traducao = $1.traducao + $3.traducao + "\t" + 
+			pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
+			"\t" + "strcpy(" + pilha[indiceS1][$1.label].temp + ", " + pilha[indiceS3][$3.label].temp + ")"  + ";\n";
+		}
+	}
+	//Caso de ID e TEMP
+	if(S1IsId == true && S3IsId == false){
+		if(elementS1.isBool != "bool" && $3.isBool == "bool") yyerror("Atribuição inválida!\n");
+
+		//precisamos fazer isso para verificar o tamanho da string
+		elementS3 = retornaListaTemp(tempList, $3.label);	
+
+		//Caso de ID e TEMP
+		if((elementS1.type == $3.tipo)){
+			$$.traducao += $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
+			+ $3.label + ";\n";
+		}
+		//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
+		if((elementS1.type != $3.tipo)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+			"(" + elementS1.type + ")" + $3.label + ";\n";			
+		}
+
+		if(pilha[indiceS1][$1.label].type == "string"){
+			pilha[indiceS1][$1.label].stringSize = elementS3.stringSize;
+			$$.traducao = $1.traducao + $3.traducao + "\t" + 
+			pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + elementS3.stringSize + ")" + ";\n" +
+			"\t" + string("strcpy(") + pilha[indiceS1][$1.label].temp + ", " + $3.label + ")"  + ";\n";
+		}
+	}		
 }
 
 %}
@@ -674,99 +766,7 @@ COMANDO 	: E ';'
 			}			 */
 			| TK_ID '=' E ';'
 			{	
-				void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
-
-				}
-				//o tipo do tk id e do E tem q ser verificado
-				bool S1IsId;
-				bool S3IsId;
-				SYMBOL_TYPE elementS1;
-				SYMBOL_TYPE elementS3;
-				
-				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
-				int indiceS1 = buscaEscopo(pilha, $1.label);
-				//true se esta na temp, false se nao esta
-				int S1estaNaTemp = procuraNaListaTemp(tempList, $1.label);
-				
-				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS1 < 0 && !(S1estaNaTemp)){
-					//erro
-					yyerror("ERRO!" + $1.label + "não foi declarada.");
-				}
-				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S1estaNaTemp){
-					S1IsId = false;
-				}
-				
-				if(indiceS1 >= 0){
-					S1IsId = true;
-					elementS1 = returnElement(pilha[indiceS1], $1.label);
-				}
-
-				int indiceS3 =  buscaEscopo(pilha, $3.label);
-				int S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
-
-				if(indiceS3 < 0 && !(S3estaNaTemp)){
-					//erro
-					yyerror("erro");
-				}
-				//Caso onde o elemento S1 é um 'number', 
-				if(S3estaNaTemp){
-					S3IsId = false;
-				}
-				if(indiceS3 >= 0){
-					S3IsId = true;
-					elementS3 = returnElement(pilha[indiceS3], $3.label);
-				}
-				
-				// SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
-				// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
-				
-				if(S1IsId == true && S3IsId == true){
-					if(elementS1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Atribuição inválida!\n");
-					//Caso de ID e ID 
-					if((elementS1.type == pilha[indiceS3][$3.label].type)){
-						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
-						+ pilha[indiceS3][$3.label].temp + ";\n";
-					}
-					//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
-					if((elementS1.type != pilha[indiceS3][$3.label].type)){
-						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
-						"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
-					}
-
-					if(pilha[indiceS1][$1.label].type == "string"){
-						cout << "BBBBBB\n";
-						$$.traducao = $1.traducao + $3.traducao + "\t" + 
-						pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
-						"\t" + "strcpy(" + pilha[indiceS1][$1.label].temp + ", " + pilha[indiceS3][$3.label].temp + ")"  + ";\n";
-					}
-				}
-				//Caso de ID e TEMP
-				if(S1IsId == true && S3IsId == false){
-					if(elementS1.isBool != "bool" && $3.isBool == "bool") yyerror("Atribuição inválida!\n");
-
-					//precisamos fazer isso para verificar o tamanho da string
-					elementS3 = retornaListaTemp(tempList, $3.label);	
-
-					//Caso de ID e TEMP
-					if((elementS1.type == $3.tipo)){
-						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
-						+ $3.label + ";\n";
-					}
-					//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
-					if((elementS1.type != $3.tipo)){
-						$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
-						"(" + elementS1.type + ")" + $3.label + ";\n";			
-					}
-
-					if(pilha[indiceS1][$1.label].type == "string"){
-						pilha[indiceS1][$1.label].stringSize = elementS3.stringSize;
-						$$.traducao = $1.traducao + $3.traducao + "\t" + 
-						pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + elementS3.stringSize + ")" + ";\n" +
-						"\t" + string("strcpy(") + pilha[indiceS1][$1.label].temp + ", " + $3.label + ")"  + ";\n";
-					}
-				}		
+				tkIDAtribuicao($$, $1, $3, pilha);
 			}
 			| TK_PRINT '(' E COISAS ')' ';'
 			{
@@ -1054,7 +1054,8 @@ COMANDO 	: E ';'
 					S7isId = true;
 					elementS7 = returnElement(pilha[indiceS7], $7.label);
 				}
-
+				cout << "FUNCAO\n";
+				
 				if(!S7isId){
 					if($7.isBool != "bool") yyerror("---A expressão não é do tipo booleano!\n");
 					string idFor = geraLabelBloco();
@@ -1062,14 +1063,15 @@ COMANDO 	: E ';'
 					value.type = $7.tipo;
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
-
-
-					$$.traducao =  $3.traducao + $7.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
+					cout << "--------" + $3.label <<"\n";
+					cout << "--------" + $5.label << "\n";
+					tkIDAtribuicao($$, $3, $5, pilha);
+					$$.traducao +=  $3.traducao + $7.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
 					"\t" + value.temp + " = !" + $7.label + ";\n" +
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
-					$13.traducao +
-					$11.traducao +
-					"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
+					$13.traducao;
+					tkIDAtribuicao($$, $3, $11, pilha); 
+					$$.traducao += "\tgoto INICIO_FOR" + idFor + ";\n" +
 					"\t" + "FIM_FOR" + idFor + ":\n"; 
 				}
 			}

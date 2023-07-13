@@ -575,12 +575,104 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	}	
 	
 	value.temp = $$.label;				
-	insereTempList(value.temp, value.type, 0, tempList);
+	insereTempList(value.temp, value.type, 0, tempList);	
+}
+
+void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+	//o tipo do tk id e do E tem q ser verificado
+	bool S1IsId;
+	bool S3IsId;
+	SYMBOL_TYPE elementS1;
+	SYMBOL_TYPE elementS3;
 	
+	// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
+	int indiceS1 = buscaEscopo(pilha, $1.label);
+	//true se esta na temp, false se nao esta
+	int S1estaNaTemp = procuraNaListaTemp(tempList, $1.label);
+	
+	// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+	if(indiceS1 < 0 && !(S1estaNaTemp)){
+		//erro
+		yyerror("ERRO!" + $1.label + "não foi declarada.");
+	}
+	// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+	if(S1estaNaTemp){
+		S1IsId = false;
+	}
+	
+	if(indiceS1 >= 0){
+		S1IsId = true;
+		elementS1 = returnElement(pilha[indiceS1], $1.label);
+	}
+
+	int indiceS3 =  buscaEscopo(pilha, $3.label);
+	int S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
+
+	if(indiceS3 < 0 && !(S3estaNaTemp)){
+		//erro
+		yyerror("erro");
+	}
+	//Caso onde o elemento S1 é um 'number', 
+	if(S3estaNaTemp){
+		S3IsId = false;
+	}
+	if(indiceS3 >= 0){
+		S3IsId = true;
+		elementS3 = returnElement(pilha[indiceS3], $3.label);
+	}
+	
+	// SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
+	// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
+	
+	if(S1IsId == true && S3IsId == true){
+		if(elementS1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Atribuição inválida!\n");
+		//Caso de ID e ID 
+		if((elementS1.type == pilha[indiceS3][$3.label].type)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
+			+ pilha[indiceS3][$3.label].temp + ";\n";
+		}
+		//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
+		if((elementS1.type != pilha[indiceS3][$3.label].type)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+			"(" + elementS1.type + ")" + pilha[indiceS3][$3.label].temp + ";\n";		
+		}
+
+		if(pilha[indiceS1][$1.label].type == "string"){
+			cout << "BBBBBB\n";
+			$$.traducao = $1.traducao + $3.traducao + "\t" + 
+			pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + pilha[indiceS3][$3.label].stringSize + ")" + ";\n" +
+			"\t" + "strcpy(" + pilha[indiceS1][$1.label].temp + ", " + pilha[indiceS3][$3.label].temp + ")"  + ";\n";
+		}
+	}
+	//Caso de ID e TEMP
+	if(S1IsId == true && S3IsId == false){
+		if(elementS1.isBool != "bool" && $3.isBool == "bool") yyerror("Atribuição inválida!\n");
+
+		//precisamos fazer isso para verificar o tamanho da string
+		elementS3 = retornaListaTemp(tempList, $3.label);	
+
+		//Caso de ID e TEMP
+		if((elementS1.type == $3.tipo)){
+			$$.traducao += $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " 
+			+ $3.label + ";\n";
+		}
+		//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
+		if((elementS1.type != $3.tipo)){
+			$$.traducao = $1.traducao + $3.traducao + "\t" + pilha[indiceS1][$1.label].temp + " = " + 
+			"(" + elementS1.type + ")" + $3.label + ";\n";			
+		}
+
+		if(pilha[indiceS1][$1.label].type == "string"){
+			pilha[indiceS1][$1.label].stringSize = elementS3.stringSize;
+			$$.traducao = $1.traducao + $3.traducao + "\t" + 
+			pilha[indiceS1][$1.label].temp + " = " + "(char *) malloc(" + elementS3.stringSize + ")" + ";\n" +
+			"\t" + string("strcpy(") + pilha[indiceS1][$1.label].temp + ", " + $3.label + ")"  + ";\n";
+		}
+	}		
 }
 
 
-#line 584 "y.tab.c"
+#line 676 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -1071,12 +1163,12 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   537,   537,   545,   552,   558,   563,   568,   573,   574,
-     575,   587,   600,   617,   629,   642,   646,   650,   662,   667,
-     675,   768,   808,   860,   920,   976,  1031,  1075,  1109,  1115,
-    1119,  1123,  1127,  1131,  1143,  1155,  1160,  1164,  1168,  1172,
-    1176,  1180,  1200,  1205,  1210,  1213,  1220,  1227,  1235,  1243,
-    1251,  1259
+       0,   629,   629,   637,   644,   650,   655,   660,   665,   666,
+     667,   679,   692,   709,   721,   734,   738,   742,   754,   759,
+     767,   771,   811,   863,   923,   979,  1034,  1081,  1115,  1121,
+    1125,  1129,  1133,  1137,  1149,  1161,  1166,  1170,  1174,  1178,
+    1182,  1186,  1206,  1211,  1216,  1219,  1226,  1233,  1241,  1249,
+    1257,  1265
 };
 #endif
 
@@ -1997,57 +2089,57 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 538 "sintatica.y"
+#line 630 "sintatica.y"
                         {
 				cout << "/*Compilador FOCA*/\n" << "#include <iostream>\n#include<string.h>\n#include<stdio.h>\nint main(void)\n{\n";
 				printList(tempList); 
 				cout << yyvsp[0].traducao << "\treturn 0;\n}" << endl; 
 			}
-#line 2007 "y.tab.c"
+#line 2099 "y.tab.c"
     break;
 
   case 3:
-#line 546 "sintatica.y"
+#line 638 "sintatica.y"
             {
                 yyval.traducao = yyvsp[-2].traducao;
             }
-#line 2015 "y.tab.c"
+#line 2107 "y.tab.c"
     break;
 
   case 4:
-#line 552 "sintatica.y"
+#line 644 "sintatica.y"
             {
                 empilha(pilha);
             }
-#line 2023 "y.tab.c"
+#line 2115 "y.tab.c"
     break;
 
   case 5:
-#line 558 "sintatica.y"
+#line 650 "sintatica.y"
             { 
                 desempilha(pilha);
             }
-#line 2031 "y.tab.c"
+#line 2123 "y.tab.c"
     break;
 
   case 6:
-#line 564 "sintatica.y"
+#line 656 "sintatica.y"
                         {
 				yyval.traducao =  yyvsp[-1].traducao + yyvsp[0].traducao;
 			}
-#line 2039 "y.tab.c"
+#line 2131 "y.tab.c"
     break;
 
   case 7:
-#line 568 "sintatica.y"
+#line 660 "sintatica.y"
                         {	
 				yyval.traducao = "";
 			}
-#line 2047 "y.tab.c"
+#line 2139 "y.tab.c"
     break;
 
   case 10:
-#line 576 "sintatica.y"
+#line 668 "sintatica.y"
                         {
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], yyvsp[-1].label);
 				SYMBOL_TYPE value;
@@ -2059,11 +2151,11 @@ yyreduce:
 				insereTempList(value.temp, value.type, 0, tempList);
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[-1].traducao;
 			}
-#line 2063 "y.tab.c"
+#line 2155 "y.tab.c"
     break;
 
   case 11:
-#line 588 "sintatica.y"
+#line 680 "sintatica.y"
                         {
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], yyvsp[-1].label);
 				SYMBOL_TYPE value;
@@ -2076,11 +2168,11 @@ yyreduce:
 				insereTempList(value.temp, value.type, 0, tempList);
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[-1].traducao;
 			}
-#line 2080 "y.tab.c"
+#line 2172 "y.tab.c"
     break;
 
   case 12:
-#line 601 "sintatica.y"
+#line 693 "sintatica.y"
                         {
 				// $$.teste = 'Z';
 				// $2.label = "pastel de frango 2 reais";
@@ -2097,11 +2189,11 @@ yyreduce:
 				
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[-1].traducao;
 			}
-#line 2101 "y.tab.c"
+#line 2193 "y.tab.c"
     break;
 
   case 13:
-#line 618 "sintatica.y"
+#line 710 "sintatica.y"
                         {
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], yyvsp[-1].label);
 				SYMBOL_TYPE value;
@@ -2113,11 +2205,11 @@ yyreduce:
 				insereTempList(value.temp, value.type, 0, tempList);
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[-1].traducao;
 			}
-#line 2117 "y.tab.c"
+#line 2209 "y.tab.c"
     break;
 
   case 14:
-#line 630 "sintatica.y"
+#line 722 "sintatica.y"
                         {
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], yyvsp[-1].label);
 				SYMBOL_TYPE value;
@@ -2130,27 +2222,27 @@ yyreduce:
 				insereTempList(value.temp, value.type, 0, tempList);
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[-1].traducao;
 			}
-#line 2134 "y.tab.c"
+#line 2226 "y.tab.c"
     break;
 
   case 15:
-#line 643 "sintatica.y"
+#line 735 "sintatica.y"
                         {
 				atribuicao(yyval, yyvsp[-3], yyvsp[-1], pilha);
 			}
-#line 2142 "y.tab.c"
+#line 2234 "y.tab.c"
     break;
 
   case 16:
-#line 647 "sintatica.y"
+#line 739 "sintatica.y"
                         {
 				atribuicao(yyval, yyvsp[-3], yyvsp[-1], pilha);
 			}
-#line 2150 "y.tab.c"
+#line 2242 "y.tab.c"
     break;
 
   case 17:
-#line 651 "sintatica.y"
+#line 743 "sintatica.y"
                         {
 				string valor = "1";
 				//procurando o elemento nos varios escopo
@@ -2162,125 +2254,36 @@ yyreduce:
 				pilha[aux][yyvsp[-3].label].isBool = "bool";
 				yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + pilha[aux][yyvsp[-3].label].temp + " = " + valor + ";\n";
 			}
-#line 2166 "y.tab.c"
+#line 2258 "y.tab.c"
     break;
 
   case 18:
-#line 663 "sintatica.y"
+#line 755 "sintatica.y"
                         {
 				yyvsp[-1].label = "0";
 				atribuicao(yyval, yyvsp[-3], yyvsp[-1], pilha);
 			}
-#line 2175 "y.tab.c"
+#line 2267 "y.tab.c"
     break;
 
   case 19:
-#line 668 "sintatica.y"
+#line 760 "sintatica.y"
                         {
 				atribuicao(yyval, yyvsp[-3], yyvsp[-1], pilha);
 			}
-#line 2183 "y.tab.c"
+#line 2275 "y.tab.c"
     break;
 
   case 20:
-#line 676 "sintatica.y"
+#line 768 "sintatica.y"
                         {	
-				//o tipo do tk id e do E tem q ser verificado
-				bool S1IsId;
-				bool S3IsId;
-				SYMBOL_TYPE elementS1;
-				SYMBOL_TYPE elementS3;
-				
-				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
-				int indiceS1 = buscaEscopo(pilha, yyvsp[-3].label);
-				//true se esta na temp, false se nao esta
-				int S1estaNaTemp = procuraNaListaTemp(tempList, yyvsp[-3].label);
-				
-				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS1 < 0 && !(S1estaNaTemp)){
-					//erro
-					yyerror("ERRO!" + yyvsp[-3].label + "não foi declarada.");
-				}
-				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S1estaNaTemp){
-					S1IsId = false;
-				}
-				
-				if(indiceS1 >= 0){
-					S1IsId = true;
-					elementS1 = returnElement(pilha[indiceS1], yyvsp[-3].label);
-				}
-
-				int indiceS3 =  buscaEscopo(pilha, yyvsp[-1].label);
-				int S3estaNaTemp = procuraNaListaTemp(tempList, yyvsp[-1].label);
-
-				if(indiceS3 < 0 && !(S3estaNaTemp)){
-					//erro
-					yyerror("erro");
-				}
-				//Caso onde o elemento S1 é um 'number', 
-				if(S3estaNaTemp){
-					S3IsId = false;
-				}
-				if(indiceS3 >= 0){
-					S3IsId = true;
-					elementS3 = returnElement(pilha[indiceS3], yyvsp[-1].label);
-				}
-				
-				// SYMBOL_TYPE value = returnElement(pilha[indiceS1], $1.label);
-				// Se o tipo do TK_ID for igual ao tipo da Expressão, não alteramos o tipo da Expressão, atribuindo normalmente
-				
-				if(S1IsId == true && S3IsId == true){
-					if(elementS1.isBool != "bool" && elementS3.isBool == "bool") yyerror("Atribuição inválida!\n");
-					//Caso de ID e ID 
-					if((elementS1.type == pilha[indiceS3][yyvsp[-1].label].type)){
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + pilha[indiceS1][yyvsp[-3].label].temp + " = " 
-						+ pilha[indiceS3][yyvsp[-1].label].temp + ";\n";
-					}
-					//Caso de ID e ID com tipos diferentes, ou seja, ocorre uma conversão
-					if((elementS1.type != pilha[indiceS3][yyvsp[-1].label].type)){
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + pilha[indiceS1][yyvsp[-3].label].temp + " = " + 
-						"(" + elementS1.type + ")" + pilha[indiceS3][yyvsp[-1].label].temp + ";\n";		
-					}
-
-					if(pilha[indiceS1][yyvsp[-3].label].type == "string"){
-						cout << "BBBBBB\n";
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + 
-						pilha[indiceS1][yyvsp[-3].label].temp + " = " + "(char *) malloc(" + pilha[indiceS3][yyvsp[-1].label].stringSize + ")" + ";\n" +
-						"\t" + "strcpy(" + pilha[indiceS1][yyvsp[-3].label].temp + ", " + pilha[indiceS3][yyvsp[-1].label].temp + ")"  + ";\n";
-					}
-				}
-				//Caso de ID e TEMP
-				if(S1IsId == true && S3IsId == false){
-					if(elementS1.isBool != "bool" && yyvsp[-1].isBool == "bool") yyerror("Atribuição inválida!\n");
-
-					//precisamos fazer isso para verificar o tamanho da string
-					elementS3 = retornaListaTemp(tempList, yyvsp[-1].label);	
-
-					//Caso de ID e TEMP
-					if((elementS1.type == yyvsp[-1].tipo)){
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + pilha[indiceS1][yyvsp[-3].label].temp + " = " 
-						+ yyvsp[-1].label + ";\n";
-					}
-					//Caso de ID e TEMP com tipos diferetes, fazendo conversao 
-					if((elementS1.type != yyvsp[-1].tipo)){
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + pilha[indiceS1][yyvsp[-3].label].temp + " = " + 
-						"(" + elementS1.type + ")" + yyvsp[-1].label + ";\n";			
-					}
-
-					if(pilha[indiceS1][yyvsp[-3].label].type == "string"){
-						pilha[indiceS1][yyvsp[-3].label].stringSize = elementS3.stringSize;
-						yyval.traducao = yyvsp[-3].traducao + yyvsp[-1].traducao + "\t" + 
-						pilha[indiceS1][yyvsp[-3].label].temp + " = " + "(char *) malloc(" + elementS3.stringSize + ")" + ";\n" +
-						"\t" + string("strcpy(") + pilha[indiceS1][yyvsp[-3].label].temp + ", " + yyvsp[-1].label + ")"  + ";\n";
-					}
-				}		
+				tkIDAtribuicao(yyval, yyvsp[-3], yyvsp[-1], pilha);
 			}
-#line 2280 "y.tab.c"
+#line 2283 "y.tab.c"
     break;
 
   case 21:
-#line 769 "sintatica.y"
+#line 772 "sintatica.y"
                         {
 				// std::cout << "Exemplo de impressão literal de \\n: \\n\n";
 				
@@ -2320,11 +2323,11 @@ yyreduce:
 					yyval.traducao = yyvsp[-3].traducao + yyvsp[-2].traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";	
 				} 	
 			}
-#line 2324 "y.tab.c"
+#line 2327 "y.tab.c"
     break;
 
   case 22:
-#line 809 "sintatica.y"
+#line 812 "sintatica.y"
                         {
 				bool S3IsId;
 				SYMBOL_TYPE elementS3;
@@ -2376,11 +2379,11 @@ yyreduce:
 					"\t" + "FIM_IF" + idBloco + ":\n";
 				}
 			}
-#line 2380 "y.tab.c"
+#line 2383 "y.tab.c"
     break;
 
   case 23:
-#line 861 "sintatica.y"
+#line 864 "sintatica.y"
                         {
 				bool S3IsId;
 				SYMBOL_TYPE elementS3;
@@ -2440,11 +2443,11 @@ yyreduce:
 					"\t" + "FIM_IF" + idBloco + ":\n";
 				}
 			}
-#line 2444 "y.tab.c"
+#line 2447 "y.tab.c"
     break;
 
   case 24:
-#line 921 "sintatica.y"
+#line 924 "sintatica.y"
                         {
 				bool S3IsId;
 				SYMBOL_TYPE elementS3;
@@ -2500,11 +2503,11 @@ yyreduce:
 					"\t" + "FIM_WHILE" + idWhile + ":\n"; 
 				}
 			}
-#line 2504 "y.tab.c"
+#line 2507 "y.tab.c"
     break;
 
   case 25:
-#line 977 "sintatica.y"
+#line 980 "sintatica.y"
                         {
 				bool S5IsId;
 				SYMBOL_TYPE elementS5;
@@ -2559,11 +2562,11 @@ yyreduce:
 					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n";
 				}
 			}
-#line 2563 "y.tab.c"
+#line 2566 "y.tab.c"
     break;
 
   case 26:
-#line 1032 "sintatica.y"
+#line 1035 "sintatica.y"
                         {
 				bool S7isId;
 				SYMBOL_TYPE elementS7;
@@ -2586,7 +2589,8 @@ yyreduce:
 					S7isId = true;
 					elementS7 = returnElement(pilha[indiceS7], yyvsp[-6].label);
 				}
-
+				cout << "FUNCAO\n";
+				
 				if(!S7isId){
 					if(yyvsp[-6].isBool != "bool") yyerror("---A expressão não é do tipo booleano!\n");
 					string idFor = geraLabelBloco();
@@ -2594,22 +2598,24 @@ yyreduce:
 					value.type = yyvsp[-6].tipo;
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
-
-
-					yyval.traducao =  yyvsp[-10].traducao + yyvsp[-6].traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
+					cout << "--------" + yyvsp[-10].label <<"\n";
+					cout << "--------" + yyvsp[-8].label << "\n";
+					tkIDAtribuicao(yyval, yyvsp[-10], yyvsp[-8], pilha);
+					yyval.traducao +=  yyvsp[-10].traducao + yyvsp[-6].traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
 					"\t" + value.temp + " = !" + yyvsp[-6].label + ";\n" +
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
-					yyvsp[0].traducao +
-					yyvsp[-2].traducao +
-					"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
+					yyvsp[0].traducao;
+					tkIDAtribuicao(yyval, yyvsp[-10], yyvsp[-2], pilha); 
+					yyval.traducao += "\tgoto INICIO_FOR" + idFor + ";\n" +
 					"\t" + "FIM_FOR" + idFor + ":\n"; 
+
 				}
 			}
-#line 2609 "y.tab.c"
+#line 2615 "y.tab.c"
     break;
 
   case 27:
-#line 1076 "sintatica.y"
+#line 1082 "sintatica.y"
                         {	
 				bool S1IsId;
 				bool S3IsId;
@@ -2642,51 +2648,51 @@ yyreduce:
 				}
 				yyval.traducao = yyvsp[-1].traducao + yyvsp[0].traducao;
 			}
-#line 2646 "y.tab.c"
+#line 2652 "y.tab.c"
     break;
 
   case 28:
-#line 1109 "sintatica.y"
+#line 1115 "sintatica.y"
                         {
 				yyval.traducao = "";
 			}
-#line 2654 "y.tab.c"
+#line 2660 "y.tab.c"
     break;
 
   case 29:
-#line 1116 "sintatica.y"
+#line 1122 "sintatica.y"
                         {		
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " + ");				
 			}
-#line 2662 "y.tab.c"
+#line 2668 "y.tab.c"
     break;
 
   case 30:
-#line 1120 "sintatica.y"
+#line 1126 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " - ");
 			}
-#line 2670 "y.tab.c"
+#line 2676 "y.tab.c"
     break;
 
   case 31:
-#line 1124 "sintatica.y"
+#line 1130 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " * ");
 			}
-#line 2678 "y.tab.c"
+#line 2684 "y.tab.c"
     break;
 
   case 32:
-#line 1128 "sintatica.y"
+#line 1134 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " / ");
 			}
-#line 2686 "y.tab.c"
+#line 2692 "y.tab.c"
     break;
 
   case 33:
-#line 1132 "sintatica.y"
+#line 1138 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
@@ -2698,11 +2704,11 @@ yyreduce:
 
 				yyval.traducao = yyvsp[-1].traducao + yyvsp[0].traducao + "\t" + tempConvert.temp + " = " + "(" + yyval.tipo + ")" + yyvsp[0].label + ";\n";
 			}
-#line 2702 "y.tab.c"
+#line 2708 "y.tab.c"
     break;
 
   case 34:
-#line 1144 "sintatica.y"
+#line 1150 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
@@ -2714,60 +2720,60 @@ yyreduce:
 
 				yyval.traducao = yyvsp[-1].traducao + yyvsp[0].traducao + "\t" + tempConvert.temp + " = " + "(" + yyval.tipo + ")" + yyvsp[0].label + ";\n";
 			}
-#line 2718 "y.tab.c"
+#line 2724 "y.tab.c"
     break;
 
   case 35:
-#line 1156 "sintatica.y"
+#line 1162 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " > ");
 				
 			}
-#line 2727 "y.tab.c"
+#line 2733 "y.tab.c"
     break;
 
   case 36:
-#line 1161 "sintatica.y"
+#line 1167 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " >= ");
 			}
-#line 2735 "y.tab.c"
+#line 2741 "y.tab.c"
     break;
 
   case 37:
-#line 1165 "sintatica.y"
+#line 1171 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " < ");
 			}
-#line 2743 "y.tab.c"
+#line 2749 "y.tab.c"
     break;
 
   case 38:
-#line 1169 "sintatica.y"
+#line 1175 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " <= ");	
 			}
-#line 2751 "y.tab.c"
+#line 2757 "y.tab.c"
     break;
 
   case 39:
-#line 1173 "sintatica.y"
+#line 1179 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " == ");
 			}
-#line 2759 "y.tab.c"
+#line 2765 "y.tab.c"
     break;
 
   case 40:
-#line 1177 "sintatica.y"
+#line 1183 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " != ");	
 			}
-#line 2767 "y.tab.c"
+#line 2773 "y.tab.c"
     break;
 
   case 41:
-#line 1181 "sintatica.y"
+#line 1187 "sintatica.y"
                         {
 				//criando temporaria que recebera a soma
 				SYMBOL_TYPE value;
@@ -2787,56 +2793,56 @@ yyreduce:
 							yyvsp[-2].label + " % " + yyvsp[0].label + ";\n";
 				}
 			}
-#line 2791 "y.tab.c"
+#line 2797 "y.tab.c"
     break;
 
   case 42:
-#line 1201 "sintatica.y"
+#line 1207 "sintatica.y"
                         {	
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " && ");
 			}
-#line 2799 "y.tab.c"
+#line 2805 "y.tab.c"
     break;
 
   case 43:
-#line 1206 "sintatica.y"
+#line 1212 "sintatica.y"
                         {
 				realizaOperacao(yyval, yyvsp[-2], yyvsp[0], " || ");
 			}
-#line 2807 "y.tab.c"
+#line 2813 "y.tab.c"
     break;
 
   case 44:
-#line 1211 "sintatica.y"
+#line 1217 "sintatica.y"
                         {
 			}
-#line 2814 "y.tab.c"
+#line 2820 "y.tab.c"
     break;
 
   case 45:
-#line 1214 "sintatica.y"
+#line 1220 "sintatica.y"
                         {
 				yyval.tipo = "int";
 				yyval.label =  geraIdAleatorio();
 				insereTempList(yyval.label, yyval.tipo, 0, tempList);
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 			}
-#line 2825 "y.tab.c"
+#line 2831 "y.tab.c"
     break;
 
   case 46:
-#line 1221 "sintatica.y"
+#line 1227 "sintatica.y"
                         {
 				yyval.tipo = "float";
 				yyval.label =  geraIdAleatorio();
 				insereTempList(yyval.label, yyval.tipo, 0, tempList);
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";
 			}
-#line 2836 "y.tab.c"
+#line 2842 "y.tab.c"
     break;
 
   case 47:
-#line 1228 "sintatica.y"
+#line 1234 "sintatica.y"
                         {
 				yyval.tipo = "int";
 				yyval.isBool = "bool";
@@ -2844,11 +2850,11 @@ yyreduce:
 				insereTempList(yyval.label, yyval.tipo, 0, tempList);
 				yyval.traducao = "\t" + yyval.label + " = " + "1" + ";\n";
 			}
-#line 2848 "y.tab.c"
+#line 2854 "y.tab.c"
     break;
 
   case 48:
-#line 1236 "sintatica.y"
+#line 1242 "sintatica.y"
                         {
 				yyval.tipo = "int";
 				yyval.isBool = "bool";
@@ -2856,11 +2862,11 @@ yyreduce:
 				insereTempList(yyval.label, yyval.tipo, 0, tempList);
 				yyval.traducao = "\t" + yyval.label + " = " + "0" + ";\n";
 			}
-#line 2860 "y.tab.c"
+#line 2866 "y.tab.c"
     break;
 
   case 49:
-#line 1244 "sintatica.y"
+#line 1250 "sintatica.y"
                         {
 				yyval.tipo = "char";
 				yyval.label =  geraIdAleatorio();
@@ -2868,11 +2874,11 @@ yyreduce:
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].label + ";\n";	
 					
 			}
-#line 2872 "y.tab.c"
+#line 2878 "y.tab.c"
     break;
 
   case 50:
-#line 1252 "sintatica.y"
+#line 1258 "sintatica.y"
                         {
 				cout << "AAAAA\n";
 				yyval.tipo = "string";
@@ -2880,11 +2886,11 @@ yyreduce:
 				insereTempList(yyval.label, yyval.tipo, yyvsp[0].label.size() - 1, tempList);
 				yyval.traducao = "\t" + string("strcpy(") + yyval.label + ", " +  yyvsp[0].label + ")" + ";\n";		
 			}
-#line 2884 "y.tab.c"
+#line 2890 "y.tab.c"
     break;
 
   case 51:
-#line 1260 "sintatica.y"
+#line 1266 "sintatica.y"
                         {
 				yyval.traducao =  "";
 				// cout << "aaaaa" << "\n";
@@ -2900,11 +2906,11 @@ yyreduce:
 				// // verificaDeclaracao($1.label, elemento.varName);
 				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
-#line 2904 "y.tab.c"
+#line 2910 "y.tab.c"
     break;
 
 
-#line 2908 "y.tab.c"
+#line 2914 "y.tab.c"
 
       default: break;
     }
@@ -3136,7 +3142,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1276 "sintatica.y"
+#line 1282 "sintatica.y"
 
 
 #include "lex.yy.c"
