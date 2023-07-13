@@ -31,6 +31,8 @@ STRING \"([^\"\\]|\\.)*\"
 
 "while"     {return TK_WHILE; }
 
+"for"     {return TK_FOR; }
+
 "int"		{return TK_TIPO_INT; }
 
 "float"     {return TK_TIPO_FLOAT; }
@@ -38,7 +40,7 @@ STRING \"([^\"\\]|\\.)*\"
 "bool"      {return TK_TIPO_BOOL; }
 
 "char"      {return TK_TIPO_CHAR; }
-
+    
 "string"      {return TK_TIPO_STRING; }
 
 "true"      {return TK_TRUE; }

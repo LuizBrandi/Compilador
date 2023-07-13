@@ -1,11 +1,8 @@
 int main()
 {	
-  bool b;
-  b = 1 > 0;
-  do{
-    int a;
-    a = 1;
-  } while(b)
+  int i;
+  for(1; 1 > 1; 1){
 
+  }
 }
 

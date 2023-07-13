@@ -520,7 +520,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 %token TK_AND TK_OR TK_NOT
 %token TK_VIRGULA TK_PRINT
 %token TK_IF TK_ELSE
-%token TK_DO TK_WHILE
+%token TK_DO TK_WHILE TK_FOR
 
 
 %start S
@@ -942,7 +942,6 @@ COMANDO 	: E ';'
 				}
 
 				if(S3IsId){
-
 					if(elementS3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
 					SYMBOL_TYPE value;
@@ -950,9 +949,9 @@ COMANDO 	: E ';'
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
 
-					$$.traducao = $3.traducao + "\t" + "INICIO_WHILE" + idWhile + ";\n" +
+					$$.traducao = $3.traducao + "\t" + "INICIO_WHILE" + idWhile + ":\n" +
 					"\t" + value.temp + " = !" + elementS3.temp + ";\n" +
-					"\t" + "if(" + elementS3.temp + ") " + "goto " + "FIM_WHILE" + idWhile + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_WHILE" + idWhile + ";\n" +
 					$5.traducao +
 					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n" +
 					"\t" + "FIM_WHILE" + idWhile + ":\n";
@@ -974,7 +973,7 @@ COMANDO 	: E ';'
 					"\t" + "FIM_WHILE" + idWhile + ":\n"; 
 				}
 			}
-			| TK_DO BLOCO TK_WHILE '(' E ')'
+			| TK_DO BLOCO TK_WHILE '(' E ')' ';'
 			{
 				bool S5IsId;
 				SYMBOL_TYPE elementS5;
@@ -999,7 +998,6 @@ COMANDO 	: E ';'
 				}
 
 				if(S5IsId){
-
 					if(elementS5.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
 					SYMBOL_TYPE value;
@@ -1007,12 +1005,12 @@ COMANDO 	: E ';'
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
 
-					$$.traducao = $2.traducao + "\t" + "INICIO_WHILE" + idWhile + ";\n" +
+					$$.traducao = "\tINICIO_DOWHILE" + idWhile + ";\n" +
 					$2.traducao +
 					"\t" + value.temp + " = !" + elementS5.temp + ";\n" +
-					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_WHILE" + idWhile + ";\n" +
-					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n" +
-					"\t" + "FIM_WHILE" + idWhile + ":\n"; 
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_DOWHILE" + idWhile + ";\n" +
+					"\t" + "goto " + "INICIO_DOWHILE" + idWhile + ";\n" +
+					"\t" + "FIM_DOWHILE" + idWhile + ":\n"; 
 				}
 
 				if(!S5IsId){
@@ -1028,6 +1026,62 @@ COMANDO 	: E ';'
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_WHILE" + idWhile + ";\n" +
 					$2.traducao +
 					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n";
+				}
+			}					
+			| TK_FOR '(' E ';' E ';' E ')' BLOCO
+			{
+				bool S5isId;
+				SYMBOL_TYPE elementS5;
+
+				int indiceS5 = buscaEscopo(pilha, $5.label);
+				//true se esta na temp, false se nao esta
+				bool S5estaNaTemp = procuraNaListaTemp(tempList, $5.label);
+				
+				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+				if(indiceS5 < 0 && !(S5estaNaTemp)){
+					//erro
+					yyerror("ERRO!" + $5.label + "não foi declarada.");
+				}
+				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+				if(S5estaNaTemp){
+					S5isId = false;
+				}
+				
+				if(indiceS5 >= 0){
+					S5isId = true;
+					elementS5 = returnElement(pilha[indiceS5], $5.label);
+				}
+
+				// if(S5isId){
+				// 	if(elementS5.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
+				// 	string idFor = geraLabelBloco();
+				// 	SYMBOL_TYPE value;
+				// 	value.type = elementS5.type;
+				// 	value.temp = geraIdAleatorio();
+				// 	insereTempList(value.temp, value.type, 0, tempList);
+
+				// 	$$.traducao = $3.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
+				// 	"\t" + value.temp + " = !" + elementS5.temp + ";\n" +
+				// 	"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
+				// 	$5.traducao +
+				// 	"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
+				// 	"\t" + "FIM_FOR" + idFor + ":\n";
+				// }
+
+				if(!S5isId){
+					if($5.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
+					string idFor = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = $5.tipo;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $3.traducao + "\t" + "INICIO_FOR" + idFor + ";\n" +
+					"\t" + value.temp + " = !" + $3.label + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
+					$5.traducao +
+					"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
+					"\t" + "FIM_FOR" + idFor + ":\n"; 
 				}
 			}
 			;
