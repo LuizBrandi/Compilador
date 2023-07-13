@@ -77,7 +77,8 @@ extern int yydebug;
     TK_PRINT = 283,
     TK_IF = 284,
     TK_ELSE = 285,
-    TK_WHILE = 286
+    TK_DO = 286,
+    TK_WHILE = 287
   };
 #endif
 /* Tokens.  */
@@ -109,7 +110,8 @@ extern int yydebug;
 #define TK_PRINT 283
 #define TK_IF 284
 #define TK_ELSE 285
-#define TK_WHILE 286
+#define TK_DO 286
+#define TK_WHILE 287
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -27,6 +27,8 @@ STRING \"([^\"\\]|\\.)*\"
 
 "else"		{return TK_ELSE; }
 
+"do"        {return TK_DO; }
+
 "while"     {return TK_WHILE; }
 
 "int"		{return TK_TIPO_INT; }

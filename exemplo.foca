@@ -1,7 +1,11 @@
 int main()
 {	
-  while(1 > 0){
+  bool b;
+  b = 1 > 0;
+  do{
     int a;
     a = 1;
-  }
+  } while(b)
+
 }
+
