@@ -674,6 +674,9 @@ COMANDO 	: E ';'
 			}			 */
 			| TK_ID '=' E ';'
 			{	
+				void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
+
+				}
 				//o tipo do tk id e do E tem q ser verificado
 				bool S1IsId;
 				bool S3IsId;
@@ -1028,58 +1031,44 @@ COMANDO 	: E ';'
 					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n";
 				}
 			}					
-			| TK_FOR '(' E ';' E ';' E ')' BLOCO
+			| TK_FOR '(' TK_ID '=' E ';' E ';' TK_ID '=' E ')' BLOCO
 			{
-				bool S5isId;
-				SYMBOL_TYPE elementS5;
+				bool S7isId;
+				SYMBOL_TYPE elementS7;
 
-				int indiceS5 = buscaEscopo(pilha, $5.label);
+				int indiceS7 = buscaEscopo(pilha, $7.label);
 				//true se esta na temp, false se nao esta
-				bool S5estaNaTemp = procuraNaListaTemp(tempList, $5.label);
+				bool S7EstaNaTemp = procuraNaListaTemp(tempList, $7.label);
 				
 				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS5 < 0 && !(S5estaNaTemp)){
+				if(indiceS7 < 0 && !(S7EstaNaTemp)){
 					//erro
-					yyerror("ERRO!" + $5.label + "não foi declarada.");
+					yyerror("ERRO!" + $7.label + "não foi declarada.");
 				}
 				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S5estaNaTemp){
-					S5isId = false;
+				if(S7EstaNaTemp){
+					S7isId = false;
 				}
 				
-				if(indiceS5 >= 0){
-					S5isId = true;
-					elementS5 = returnElement(pilha[indiceS5], $5.label);
+				if(indiceS7 >= 0){
+					S7isId = true;
+					elementS7 = returnElement(pilha[indiceS7], $7.label);
 				}
 
-				// if(S5isId){
-				// 	if(elementS5.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
-				// 	string idFor = geraLabelBloco();
-				// 	SYMBOL_TYPE value;
-				// 	value.type = elementS5.type;
-				// 	value.temp = geraIdAleatorio();
-				// 	insereTempList(value.temp, value.type, 0, tempList);
-
-				// 	$$.traducao = $3.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
-				// 	"\t" + value.temp + " = !" + elementS5.temp + ";\n" +
-				// 	"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
-				// 	$5.traducao +
-				// 	"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
-				// 	"\t" + "FIM_FOR" + idFor + ":\n";
-				// }
-
-				if(!S5isId){
-					if($5.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
+				if(!S7isId){
+					if($7.isBool != "bool") yyerror("---A expressão não é do tipo booleano!\n");
 					string idFor = geraLabelBloco();
 					SYMBOL_TYPE value;
-					value.type = $5.tipo;
+					value.type = $7.tipo;
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
 
-					$$.traducao = $3.traducao + "\t" + "INICIO_FOR" + idFor + ";\n" +
-					"\t" + value.temp + " = !" + $3.label + ";\n" +
+
+					$$.traducao =  $3.traducao + $7.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
+					"\t" + value.temp + " = !" + $7.label + ";\n" +
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_FOR" + idFor + ";\n" +
-					$5.traducao +
+					$13.traducao +
+					$11.traducao +
 					"\t" + "goto " + "INICIO_FOR" + idFor + ";\n" +
 					"\t" + "FIM_FOR" + idFor + ":\n"; 
 				}

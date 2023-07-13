@@ -1,8 +1,18 @@
 int main()
-{	
+{
+  int a;
   int i;
-  for(1; 1 > 1; 1){
-
+  for(i = 3; i > 10; i = i + 1){
+    a = a + 1;
   }
 }
 
+TK_FOR '(' TK_ID '=' E ';' E ';' E ')' BLOCO
+
+
+	$$.traducao = "\tINICIO_DOWHILE" + idWhile + ";\n" +
+					$2.traducao +
+					"\t" + value.temp + " = !" + elementS5.temp + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_DOWHILE" + idWhile + ";\n" +
+					"\t" + "goto " + "INICIO_DOWHILE" + idWhile + ";\n" +
+					"\t" + "FIM_DOWHILE" + idWhile + ":\n"; 
