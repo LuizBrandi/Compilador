@@ -27,9 +27,19 @@ STRING \"([^\"\\]|\\.)*\"
 
 "else"		{return TK_ELSE; }
 
+"switch"    {return TK_SWITCH; }
+
+"case"      {return TK_CASE; }
+
+"default"   {return TK_DEFAULT; }
+
+":"         {return TK_DP; }
+
 "do"        {return TK_DO; }
 
 "while"     {return TK_WHILE; }
+
+"break"     {return TK_BREAK; }
 
 "for"     {return TK_FOR; }
 

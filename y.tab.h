@@ -79,7 +79,12 @@ extern int yydebug;
     TK_ELSE = 285,
     TK_DO = 286,
     TK_WHILE = 287,
-    TK_FOR = 288
+    TK_FOR = 288,
+    TK_BREAK = 289,
+    TK_SWITCH = 290,
+    TK_CASE = 291,
+    TK_DEFAULT = 292,
+    TK_DP = 293
   };
 #endif
 /* Tokens.  */
@@ -114,6 +119,11 @@ extern int yydebug;
 #define TK_DO 286
 #define TK_WHILE 287
 #define TK_FOR 288
+#define TK_BREAK 289
+#define TK_SWITCH 290
+#define TK_CASE 291
+#define TK_DEFAULT 292
+#define TK_DP 293
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

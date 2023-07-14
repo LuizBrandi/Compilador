@@ -1,11 +1,11 @@
 int main()
 {
-	int i;
-	for(i = 0; i < 10; i = i + 1){
-		int b;
-		b = 100;
-		int c;
-		c = 1 + 1;
+	int a;
+	a = 1;
+	switch(a){
+		case 1:
+		case 2:
+		case 3:
 	}
 }
 

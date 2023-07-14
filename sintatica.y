@@ -38,6 +38,7 @@ typedef struct{
 
 unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
 vector<unordered_map<string, SYMBOL_TYPE>> pilha;
+stack<string> pilhaLoop;
 
 //vector para temporarias
 vector<SYMBOL_TYPE> tempList;
@@ -612,7 +613,8 @@ void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordere
 %token TK_AND TK_OR TK_NOT
 %token TK_VIRGULA TK_PRINT
 %token TK_IF TK_ELSE
-%token TK_DO TK_WHILE TK_FOR
+%token TK_DO TK_WHILE TK_FOR TK_BREAK TK_SWITCH TK_CASE TK_DEFAULT TK_DP
+
 
 
 %start S
@@ -640,6 +642,17 @@ BLOCO       : '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
             }
             ;
 
+COMANDOS	: COMANDO COMANDOS
+			{
+				$$.traducao =  $1.traducao + $2.traducao;
+			}
+			|
+			{	
+				$$.traducao = "";
+			}
+			;
+
+
 BLOCO_INICIO:
             {
                 empilha(pilha);
@@ -652,7 +665,15 @@ BLOCO_FIM   :
             }
             ;
 
-COMANDOS	: COMANDO COMANDOS
+/* BLOCO_LOOP  : '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
+            {
+                $$.traducao = $3.traducao;
+            }
+			| '{' BLOCO_INICIO COMANDOS TK_BREAK
+            ;
+
+			
+COMANDOS_LOOP: COMANDO COMANDOS
 			{
 				$$.traducao =  $1.traducao + $2.traducao;
 			}
@@ -660,7 +681,88 @@ COMANDOS	: COMANDO COMANDOS
 			{	
 				$$.traducao = "";
 			}
-			;
+			; */
+
+BLOCO_SWITCH: '{' CASE_LISTA '}'
+            {
+                // Faça o processamento necessário para o bloco switch
+                $$.traducao += $2.traducao;
+            }
+            ;
+
+CASE_LISTA  : CASE_STMT CASE_LISTA
+            {
+                $$.traducao += $2.traducao;
+            }
+            |
+            {
+                // Caso base: não há mais casos na lista
+                $$.traducao = "";
+            }
+            ;
+
+
+CASE_STMT   : CASE
+            {
+                // Faça o processamento necessário para o caso
+            }
+            ;
+
+CASE        : TK_CASE E TK_DP COMANDOS
+            {
+				
+			
+                // if(verificaVar($2.label)){
+                //     if(pilha[busca_escopo($2.label)][$2.label].atribuido == 0){
+                //        yyerror("ERRO: Variável " + $2.label + " sem valor atribuido");
+                //     }
+                //     else{
+                //         $$.declaracao += $2.declaracao + $4.declaracao;
+                //         string rotuloIni = genRot();
+                //         string rotuloFim = genRot();
+                //         $$.label = genTemp();
+                //         $$.declaracao += "\t" + string("int ") + $$.label + ";\n";
+                //         $$.traducao += "\t" + rotuloIni + "\n"; 
+                //         $$.traducao += $2.traducao;
+                //         $$.traducao += "\t" + $$.label + " = " + "!" + pilha[busca_escopo($2.label)][$2.label].temp + ";\n";
+                //         $$.traducao += "\tif("+ $$.label + ")" + " goto " + rotuloFim + ";\n";
+                //         $$.traducao += $4.traducao;
+                //         $$.traducao += "\t"+ rotuloFim +"\n";
+                //     }
+                // }
+                // else{
+                //         $$.declaracao += $2.declaracao + $4.declaracao;
+                //         string rotuloIni = genRot();
+                //         string rotuloFim = genRot();
+                //         $$.label = genTemp();
+                //         $$.declaracao += "\t" + string("int ") + $$.label + ";\n";
+                //         $$.traducao += "\t" + rotuloIni + "\n"; 
+                //         $$.traducao += $2.traducao;
+                //         $$.traducao += "\t" + $$.label + " = " + "!" + $2.label + ";\n";
+                //         $$.traducao += "\tif("+ $$.label + ")" + " goto " + rotuloFim + ";\n";
+                //         $$.traducao += $4.traducao;
+                //         $$.traducao += "\t"+ rotuloFim +"\n";
+                // }
+                
+
+            }
+            | TK_DEFAULT TK_DP COMANDOS
+            {
+                // if(defaultExecutado){
+                //    yyerror("ERRO: Mais de um case padrão (default) encontrado.");
+                // }else{
+                //     $$.declaracao += $3.declaracao;
+                //     string rotuloIni = genRot();
+                //     string rotuloFim = genRot();
+                //     $$.traducao += "\t" + rotuloIni + "\n"; 
+                //     $$.traducao += $3.traducao;
+                //     $$.traducao += "\t"+ rotuloFim +"\n";
+                //     defaultExecutado = true;
+                // }
+            }
+            ;
+
+
 
 COMANDO 	: E ';'
 			| BLOCO
@@ -947,6 +1049,7 @@ COMANDO 	: E ';'
 				if(S3IsId){
 					if(elementS3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
+					pilhaLoop.push("FIM_WHILE" + idWhile);
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
 					value.temp = geraIdAleatorio();
@@ -959,10 +1062,10 @@ COMANDO 	: E ';'
 					"\t" + "goto " + "INICIO_WHILE" + idWhile + ";\n" +
 					"\t" + "FIM_WHILE" + idWhile + ":\n";
 				}
-
 				if(!S3IsId){
 					if($3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
+					pilhaLoop.push("FIM_WHILE" + idWhile);
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
@@ -1063,8 +1166,6 @@ COMANDO 	: E ';'
 					value.type = $7.tipo;
 					value.temp = geraIdAleatorio();
 					insereTempList(value.temp, value.type, 0, tempList);
-					cout << "--------" + $3.label <<"\n";
-					cout << "--------" + $5.label << "\n";
 					tkIDAtribuicao($$, $3, $5, pilha);
 					$$.traducao +=  $3.traducao + $7.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
 					"\t" + value.temp + " = !" + $7.label + ";\n" +
@@ -1075,6 +1176,23 @@ COMANDO 	: E ';'
 					"\t" + "FIM_FOR" + idFor + ":\n"; 
 				}
 			}
+			| TK_SWITCH '(' E ')' BLOCO_SWITCH
+			{
+				
+			}
+			/* | CASE 
+			{
+				
+			}
+			| TK_BREAK ';'
+			{
+				cout << "aaaaaaa\n";
+				string label;
+				label = pilhaLoop.top();
+				cout << "aaaaaaa\n";
+				$$.traducao = "\tgoto " + label + ";\n";
+				pilhaLoop.pop();
+			} */
 			;
 
 COISAS		: TK_VIRGULA E COISAS
