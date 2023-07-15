@@ -603,6 +603,28 @@ void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordere
 	}		
 }
 
+void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& element, int& indicePilha,
+						vector<unordered_map<string, SYMBOL_TYPE>>& pilha, unordered_map<string, SYMBOL_TYPE>& hash){
+	indicePilha = buscaEscopo(pilha, $.label);
+	//true se esta na temp, false se nao esta
+	isInTemp = procuraNaListaTemp(tempList, $.label);
+	
+	// //Se o indice < 0, não está na lista de temps, é uma var não declarada
+	if(indicePilha < 0 && !(isInTemp)){
+		//erro
+		yyerror("ERRO!" + $.label + "não foi declarada.");
+	}
+	// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
+	if(isInTemp){
+		isID = false;
+	}
+	
+	if(indicePilha >= 0){
+		isID = true;
+		element = returnElement(pilha[indicePilha], $.label);
+	}
+}
+
 %}
 
 %token TK_INT TK_FLOAT TK_CHAR TK_TIPO_BOOL TK_TRUE TK_FALSE TK_STRING
@@ -710,8 +732,45 @@ CASE_STMT   : CASE
 
 CASE        : TK_CASE E TK_DP COMANDOS
             {
+				bool S2isId;
+				SYMBOL_TYPE elementS2;
+				int indiceS2;
+				bool S2estaNaTemp;
 				
-			
+				verificaExpressao($2, S2isId, S2estaNaTemp, elementS2, indiceS2, pilha, SYMBOL_TABLE);
+
+				if(S2isId){
+					string idSwitch = geraLabelBloco();
+					SYMBOL_TYPE value;
+					value.type = elementS2.type;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+
+					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
+					"\t" + value.temp + " = !" + elementS2.temp + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_CASE" + idSwitch + ";\n" +
+					$4.traducao +
+					"\t" + "FIM_CASE" + idSwitch + ":\n";
+				}
+				if(!S2isId){
+					string idSwitch = geraLabelBloco();	
+					SYMBOL_TYPE value;
+					value.type = $2.tipo;
+					value.temp = geraIdAleatorio();
+					insereTempList(value.temp, value.type, 0, tempList);
+					pilhaLoop.push(value.temp);
+
+					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
+					"\t" + value.temp + " = !" + $2.label + ";\n" +
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_CASE" + idSwitch + ";\n" +
+					$4.traducao +
+					"\t" + "FIM_CASE" + idSwitch + ":\n";
+				}
+
+
+
+
+
                 // if(verificaVar($2.label)){
                 //     if(pilha[busca_escopo($2.label)][$2.label].atribuido == 0){
                 //        yyerror("ERRO: Variável " + $2.label + " sem valor atribuido");
@@ -1026,30 +1085,16 @@ COMANDO 	: E ';'
 			{
 				bool S3IsId;
 				SYMBOL_TYPE elementS3;
+				int indiceS3;
+				bool S3estaNaTemp;
+				// void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& element, int& indicePilha,
+				// 		vector<unordered_map<string, SYMBOL_TYPE>>& pilha, unordered_map<string, SYMBOL_TYPE>& hash)
 
-				int indiceS3 = buscaEscopo(pilha, $3.label);
-				//true se esta na temp, false se nao esta
-				bool S3estaNaTemp = procuraNaListaTemp(tempList, $3.label);
-				
-				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS3 < 0 && !(S3estaNaTemp)){
-					//erro
-					yyerror("ERRO!" + $3.label + "não foi declarada.");
-				}
-				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S3estaNaTemp){
-					S3IsId = false;
-				}
-				
-				if(indiceS3 >= 0){
-					S3IsId = true;
-					elementS3 = returnElement(pilha[indiceS3], $3.label);
-				}
+				verificaExpressao($3, S3IsId, S3estaNaTemp, elementS3, indiceS3, pilha, SYMBOL_TABLE);
 
 				if(S3IsId){
 					if(elementS3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
-					pilhaLoop.push("FIM_WHILE" + idWhile);
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
 					value.temp = geraIdAleatorio();
@@ -1065,7 +1110,6 @@ COMANDO 	: E ';'
 				if(!S3IsId){
 					if($3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
 					string idWhile = geraLabelBloco();
-					pilhaLoop.push("FIM_WHILE" + idWhile);
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
@@ -1178,7 +1222,15 @@ COMANDO 	: E ';'
 			}
 			| TK_SWITCH '(' E ')' BLOCO_SWITCH
 			{
+				bool S3isId;
+				SYMBOL_TYPE elementS3;
+				int indiceS3;
+				bool S3estaNaTemp;
 				
+				verificaExpressao($3, S3isId, S3estaNaTemp, elementS3, indiceS3, pilha, SYMBOL_TABLE);
+				string valueTemp = pilhaLoop.top();
+
+				$$.traducao = $3.traducao + $5.traducao;
 			}
 			/* | CASE 
 			{
