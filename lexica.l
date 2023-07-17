@@ -79,6 +79,8 @@ STRING \"([^\"\\]|\\.)*\"
 
 "print"     {return TK_PRINT; }
 
+"read"      {return TK_READ;}
+
 [(){}[\];,]	{ return *yytext; }
 
 [+\-*/=%]   { return *yytext; }

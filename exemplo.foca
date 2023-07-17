@@ -1,45 +1,6 @@
 int main()
 {
-  int a;
-  a = 1;
-	switch(a){
-		case 1:
-    int b;
-    b = 56;
-    case 2:
-    int c; 
-    c = 22;
-	}
+  string a;
+  a = "oi " + "braida";
 }
 
-
-goto switch_end
-
-case_1:
-  // código para caso o valor seja 1
-  goto switch_end
-
-case_2:
-  // código para caso o valor seja 2
-  goto switch_end
-
-case_3:
-  // código para caso o valor seja 3
-  goto switch_end
-
-default_case:
-  // código para caso nenhum dos casos anteriores corresponda
-
-switch_end:
-
-
-        var1 = 1;
-        var2 = 0;
-        var3 = var1 > var2;
-        var0 = var3;
-        var4 = 1;
-        INICIO_SWITCH0:
-        var5 = !;
-        if(var5) goto FIM_SWITCH0;
-        FIM_SWITCH0:
-        return 0;

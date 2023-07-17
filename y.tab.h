@@ -75,16 +75,17 @@ extern int yydebug;
     TK_NOT = 281,
     TK_VIRGULA = 282,
     TK_PRINT = 283,
-    TK_IF = 284,
-    TK_ELSE = 285,
-    TK_DO = 286,
-    TK_WHILE = 287,
-    TK_FOR = 288,
-    TK_BREAK = 289,
-    TK_SWITCH = 290,
-    TK_CASE = 291,
-    TK_DEFAULT = 292,
-    TK_DP = 293
+    TK_READ = 284,
+    TK_IF = 285,
+    TK_ELSE = 286,
+    TK_DO = 287,
+    TK_WHILE = 288,
+    TK_FOR = 289,
+    TK_BREAK = 290,
+    TK_SWITCH = 291,
+    TK_CASE = 292,
+    TK_DEFAULT = 293,
+    TK_DP = 294
   };
 #endif
 /* Tokens.  */
@@ -114,16 +115,17 @@ extern int yydebug;
 #define TK_NOT 281
 #define TK_VIRGULA 282
 #define TK_PRINT 283
-#define TK_IF 284
-#define TK_ELSE 285
-#define TK_DO 286
-#define TK_WHILE 287
-#define TK_FOR 288
-#define TK_BREAK 289
-#define TK_SWITCH 290
-#define TK_CASE 291
-#define TK_DEFAULT 292
-#define TK_DP 293
+#define TK_READ 284
+#define TK_IF 285
+#define TK_ELSE 286
+#define TK_DO 287
+#define TK_WHILE 288
+#define TK_FOR 289
+#define TK_BREAK 290
+#define TK_SWITCH 291
+#define TK_CASE 292
+#define TK_DEFAULT 293
+#define TK_DP 294
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

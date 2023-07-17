@@ -36,7 +36,6 @@ typedef struct{
 	string stringSize;
 } SYMBOL_TYPE;
 
-unordered_map<string, SYMBOL_TYPE> SYMBOL_TABLE;
 vector<unordered_map<string, SYMBOL_TYPE>> pilha;
 stack<string> pilhaLoop;
 
@@ -252,7 +251,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 
 	// if($1.isBool != 1 && $3.isBool == 1) yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + "bool" + "\n");
 	if($1.tipo == "char" || $3.tipo == "char") yyerror("Operação inválida!\n" + $1.label + " é do tipo " + $1.tipo + " e " + $3.label + " é do tipo " + $3.tipo + "\n");
-		
+
 	//criando temporaria que recebera a soma
 	SYMBOL_TYPE value;	
 
@@ -604,8 +603,8 @@ void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordere
 }
 
 void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& element, int& indicePilha,
-						vector<unordered_map<string, SYMBOL_TYPE>>& pilha, unordered_map<string, SYMBOL_TYPE>& hash){
-	indicePilha = buscaEscopo(pilha, $.label);
+						vector<unordered_map<string, SYMBOL_TYPE>>& pilha, vector<SYMBOL_TYPE>& tempList){
+	indicePilha = buscaEscopo(pilha, $.label);  
 	//true se esta na temp, false se nao esta
 	isInTemp = procuraNaListaTemp(tempList, $.label);
 	
@@ -633,9 +632,9 @@ void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& el
 %token TK_FIM TK_ERROR
 %token TK_GREATER_EQUAL TK_LESS_EQUAL TK_EQUAL_EQUAL TK_NOT_EQUAL
 %token TK_AND TK_OR TK_NOT
-%token TK_VIRGULA TK_PRINT
+%token TK_VIRGULA TK_PRINT TK_READ	 
 %token TK_IF TK_ELSE
-%token TK_DO TK_WHILE TK_FOR TK_BREAK TK_SWITCH TK_CASE TK_DEFAULT TK_DP
+%token TK_DO TK_WHILE TK_FOR TK_BREAK TK_SWITCH TK_CASE TK_DEFAULT TK_DP 
 
 
 
@@ -737,8 +736,8 @@ CASE        : TK_CASE E TK_DP COMANDOS
 				int indiceS2;
 				bool S2estaNaTemp;
 				
-				verificaExpressao($2, S2isId, S2estaNaTemp, elementS2, indiceS2, pilha, SYMBOL_TABLE);
-
+				verificaExpressao($2, S2isId, S2estaNaTemp, elementS2, indiceS2, pilha, tempList);
+				
 				if(S2isId){
 					string idSwitch = geraLabelBloco();
 					SYMBOL_TYPE value;
@@ -748,9 +747,8 @@ CASE        : TK_CASE E TK_DP COMANDOS
 
 					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
 					"\t" + value.temp + " = !" + elementS2.temp + ";\n" +
-					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_CASE" + idSwitch + ";\n" +
 					$4.traducao +
-					"\t" + "FIM_CASE" + idSwitch + ":\n";
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_SWITCH" + ";\n";
 				}
 				if(!S2isId){
 					string idSwitch = geraLabelBloco();	
@@ -762,9 +760,8 @@ CASE        : TK_CASE E TK_DP COMANDOS
 
 					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
 					"\t" + value.temp + " = !" + $2.label + ";\n" +
-					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_CASE" + idSwitch + ";\n" +
 					$4.traducao +
-					"\t" + "FIM_CASE" + idSwitch + ":\n";
+					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_SWITCH" + ";\n";
 				}
 
 
@@ -931,43 +928,39 @@ COMANDO 	: E ';'
 			}
 			| TK_PRINT '(' E COISAS ')' ';'
 			{
-				// std::cout << "Exemplo de impressão literal de \\n: \\n\n";
-				
-				// cout << $3.label + "--------------";
-				// if($3.label == "_p") $$.traducao = $3.traducao + "\t" + "cout" + " << " + "endl" + ";\n";
-
-				bool S1IsId;
 				bool S3IsId;
-				SYMBOL_TYPE elementS1;
+				bool S3isInTemp;
+				int indiceS3;
 				SYMBOL_TYPE elementS3;
-				
-				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
-				int indiceS1 = buscaEscopo(pilha, $3.label);
-				//true se esta na temp, false se nao esta
-				int S1estaNaTemp = procuraNaListaTemp(tempList, $3.label);
-				
-				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS1 < 0 && !(S1estaNaTemp)){
-					//erro
-					yyerror("ERRO!" + $3.label + "não foi declarada.");
-				}
-				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S1estaNaTemp){
-					S1IsId = false;
-				}
-				
-				if(indiceS1 >= 0){
-					S1IsId = true;
-					elementS1 = returnElement(pilha[indiceS1], $3.label);
-				}
 
-				//Quando o COISAS TA VAZIO 
-				if($4.label == "") $$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
+				verificaExpressao($3, S3IsId, S3isInTemp, elementS3, indiceS3, pilha, tempList);
+				
+				//quando não é ID
+				if(!S3IsId) $$.traducao += $3.traducao + $4.traducao + "\t"  + "cout" + " << " + $3.label + ";\n";
 
-				if($4.label != ""){
-					//pegar o que tem no coisas, guardar numa variavel e depois printar
-					$$.traducao = $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";	
-				} 	
+				//quando é ID
+				if(S3IsId) $$.traducao += $3.traducao + $4.traducao + "\t" + "cout" + " << " + elementS3.temp + ";\n";
+			}
+			| TK_READ '(' TK_ID ')' ';'
+			{
+				bool S3IsId;
+				bool S3isInTemp;
+				int indiceS3;
+				SYMBOL_TYPE elementS3;
+
+				
+
+				verificaExpressao($3, S3IsId, S3isInTemp, elementS3, indiceS3, pilha, tempList);
+				
+				//quando não é ID
+				if(!S3IsId) yyerror("ERRO: Leitura Inválida, o Admin será notificado.\n");
+
+				//quando é ID
+				
+				if(S3IsId){
+					if(elementS3.type == "string") $$.traducao += "\t" + elementS3.temp + " = " + "(char *) malloc(" + "10000" + ")" + ";\n";
+					$$.traducao += $3.traducao + $4.traducao + "\t" + "cin" + " >> " + elementS3.temp + ";\n";
+				}
 			}
 			| TK_IF '(' E ')' BLOCO
 			{
@@ -1090,7 +1083,7 @@ COMANDO 	: E ';'
 				// void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& element, int& indicePilha,
 				// 		vector<unordered_map<string, SYMBOL_TYPE>>& pilha, unordered_map<string, SYMBOL_TYPE>& hash)
 
-				verificaExpressao($3, S3IsId, S3estaNaTemp, elementS3, indiceS3, pilha, SYMBOL_TABLE);
+				verificaExpressao($3, S3IsId, S3estaNaTemp, elementS3, indiceS3, pilha, tempList);
 
 				if(S3IsId){
 					if(elementS3.isBool != "bool") yyerror("A expressão não é do tipo booleano!\n");
@@ -1227,58 +1220,32 @@ COMANDO 	: E ';'
 				int indiceS3;
 				bool S3estaNaTemp;
 				
-				verificaExpressao($3, S3isId, S3estaNaTemp, elementS3, indiceS3, pilha, SYMBOL_TABLE);
+				verificaExpressao($3, S3isId, S3estaNaTemp, elementS3, indiceS3, pilha, tempList);
 				string valueTemp = pilhaLoop.top();
 
-				$$.traducao = $3.traducao + $5.traducao;
-			}
-			/* | CASE 
-			{
-				
+				$$.traducao = $3.traducao + $5.traducao +  "\t" + "FIM_SWITCH:\n";
 			}
 			| TK_BREAK ';'
 			{
-				cout << "aaaaaaa\n";
-				string label;
-				label = pilhaLoop.top();
-				cout << "aaaaaaa\n";
-				$$.traducao = "\tgoto " + label + ";\n";
-				pilhaLoop.pop();
-			} */
+				$$.traducao = "";
+			}
 			;
 
 COISAS		: TK_VIRGULA E COISAS
 			{	
-				bool S1IsId;
-				bool S3IsId;
+				bool S2IsId;
+				bool S2isInTemp;
+				int indiceS2;
+				SYMBOL_TYPE elementS2;
+
+				verificaExpressao($2, S2IsId, S2isInTemp, elementS2, indiceS2, pilha, tempList);
 				
-				SYMBOL_TYPE element;
-				// verifica se é um id ou número na Tabela de Simbolos, true se estiver, false se não estiver
-				int indiceS1 = buscaEscopo(pilha, $2.label);
-				//true se esta na temp, false se nao esta
-				int S1estaNaTemp = procuraNaListaTemp(tempList, $2.label);
+				//quando não é ID
+				if(!S2IsId) $$.traducao = $3.traducao + $2.traducao +  "\t" + "cout" + " << " + $2.label + ";\n";
+
+				//quando é ID
+				if(S2IsId) $$.traducao = $2.traducao +  "\t" + "cout" + " << " + elementS2.temp + ";\n";
 				
-				// //Se o indice < 0, não está na lista de temps, é uma var não declarada
-				if(indiceS1 < 0 && !(S1estaNaTemp)){
-					//erro
-					yyerror("ERRO!" + $3.label + "não foi declarada.");
-				}
-				// Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
-				if(S1estaNaTemp){
-					S1IsId = false;
-				}
-				
-				if(indiceS1 >= 0){
-					S1IsId = true;
-					element = returnElement(pilha[indiceS1], $2.label);
-				}
-		
-				if(element.type == "int"){
-					string valor = element.value;
-					int stringSize = valor.size();
-					// $$.traducao = $2.traducao + $3.traducao + "\t" + "cout" + " << " + elementS1.temp + ";\n";
-				}
-				$$.traducao = $2.traducao + $3.traducao;
 			}
 			|
 			{
@@ -1289,7 +1256,18 @@ COISAS		: TK_VIRGULA E COISAS
 
 E 			: E '+' E
 			{		
-				realizaOperacao($$, $1, $3, " + ");				
+				if ($1.tipo != "string" && $2.tipo != "string") { 
+ 					realizaOperacao($$, $1, $3, " + ");				
+				} else {
+					cout << "tipo $1:" + $1.tipo + "\n";
+					cout << "tipo $3:" + $3.tipo + "\n";
+					//soma de strings (CONCATENACAO)	
+					if($1.tipo == "string" || $3.tipo == "string") {
+						$$.traducao = $1.traducao + $3.traducao + "\t" + "strcat(" + $1.label  + ", " + $3.label + ")" + ";\n";	
+					}
+				}
+				
+
 			}
 			| E '-' E
 			{
@@ -1434,18 +1412,6 @@ E 			: E '+' E
 			| TK_ID
 			{
 				$$.traducao =  "";
-				// cout << "aaaaa" << "\n";
-				// $$.label =  geraIdAleatorio();
-				// SYMBOL_TYPE value;
-				// value.varName = $1.label;
-				// value.temp = $$.label;
-				
-				// //insere id na tabela de simbolos
-				// insertElement(pilha[indiceEscopoAtual], $1.label, value);
-				// //procurando elemento na hash
-				// // SYMBOL_TYPE elemento = returnElement(SYMBOL_TABLE, $1.label);
-				// // verificaDeclaracao($1.label, elemento.varName);
-				// $$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			;
 %%
