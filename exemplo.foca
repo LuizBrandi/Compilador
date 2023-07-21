@@ -1,6 +1,18 @@
 int main()
 {
-  string a;
-  a = "oi " + "braida";
+  int a[10];
+
 }
 
+*Código Intermediario*
+int var0;  
+var0 = 10;
+int var1[var0];  
+
+
+
+*Código Intermediario*
+.
+.
+. 
+int var1[10];  

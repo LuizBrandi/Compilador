@@ -22,6 +22,7 @@ struct atributos
 	string label;
 	string traducao;
 	string tipo;
+	string valorAtributo;
 	//0 -> não é Booleano, 1 -> é boleano
 	string isBool;
 	char teste;
@@ -34,6 +35,8 @@ typedef struct{
 	string isBool;
 	string value;
 	string stringSize;
+	bool isVect = false;
+	string vectSize;
 } SYMBOL_TYPE;
 
 vector<unordered_map<string, SYMBOL_TYPE>> pilha;
@@ -130,15 +133,20 @@ void printList(vector<SYMBOL_TYPE> list){
 		// cout << list[i].varName + "\n";
 		if(list[i].type == "string" && list[i].stringSize == "0") cout << "\t" << "char *" << " " << list[i].varName << ";\n";
 		if(list[i].type == "string" && list[i].stringSize != "0") cout << "\t" << "char" << " " << list[i].varName << "[" << list[i].stringSize << "]" << ";\n";
-		if(list[i].type != "string")cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
+		if(list[i].type != "string"){
+			if(list[i].isVect) cout << "\t" << list[i].type << " " << list[i].varName << "[" << list[i].vectSize << "]" << ";\n";
+			if(!list[i].isVect) cout << "\t" << list[i].type << " " << list[i].varName << ";\n";
+		}
 	}
 } 
 
-void insereTempList(string label, string tipo, int tamanho, vector<SYMBOL_TYPE>& tempList){
+void insereTempList(string label, string tipo, int tamanho, bool isVect, string vectSize, vector<SYMBOL_TYPE>& tempList){
 	SYMBOL_TYPE temp;
 	temp.varName = label;
 	temp.type = tipo;
-	temp.stringSize = to_string(tamanho);
+	temp.stringSize = to_string(tamanhoString);
+	temp.isVect = isVect;
+	temp.vectSize = vectSize;
 	tempList.push_back(temp);
 }
 
@@ -208,7 +216,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	//Se o indice < 0, não está na lista de temps, é uma var não declarada
 	if(indiceS1 < 0 && !(S1estaNaTemp)){
 		//erro
-		yyerror("ERRO!" + $1.label + "não foi declarada.");
+		yyerror("ERRO!" + $1.label + " não foi declarada.");
 	}
 	//Caso onde o elemento S1 é um 'number', ou seja, um '1' ... '999999'
 	if(S1estaNaTemp){
@@ -436,7 +444,7 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		SYMBOL_TYPE tempConvert;
 		tempConvert.temp = geraIdAleatorio();
 		tempConvert.type = "float";
-		insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
+		insereTempList(tempConvert.temp, tempConvert.type, 0, false, "0",  tempList);
 		//Criando o label da var que vai receber a conversão
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
@@ -478,7 +486,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 		SYMBOL_TYPE tempConvert;
 		tempConvert.temp = geraIdAleatorio();
 		tempConvert.type = "float";
-		insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
+		insereTempList(tempConvert.temp, tempConvert.type, 0, false, "0",  tempList);
+		
 
 		$$.label = geraIdAleatorio();	
 		value.varName = $$.label;
@@ -506,7 +515,8 @@ void realizaOperacao(atributos& $$, atributos& $1, atributos& $3, string operaca
 	}	
 	
 	value.temp = $$.label;				
-	insereTempList(value.temp, value.type, 0, tempList);	
+	insereTempList(value.temp, value.type, 0, false, "0",  tempList);
+	
 }
 
 void tkIDAtribuicao(atributos& $$, atributos& $1, atributos& $3, vector<unordered_map<string, SYMBOL_TYPE>>& pilha){
@@ -743,7 +753,8 @@ CASE        : TK_CASE E TK_DP COMANDOS
 					SYMBOL_TYPE value;
 					value.type = elementS2.type;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
+					
 
 					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
 					"\t" + value.temp + " = !" + elementS2.temp + ";\n" +
@@ -755,7 +766,7 @@ CASE        : TK_CASE E TK_DP COMANDOS
 					SYMBOL_TYPE value;
 					value.type = $2.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 					pilhaLoop.push(value.temp);
 
 					$$.traducao = $2.traducao + "\t" + "INICIO_CASE" + idSwitch + ":\n" +
@@ -763,10 +774,6 @@ CASE        : TK_CASE E TK_DP COMANDOS
 					$4.traducao +
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_SWITCH" + ";\n";
 				}
-
-
-
-
 
                 // if(verificaVar($2.label)){
                 //     if(pilha[busca_escopo($2.label)][$2.label].atribuido == 0){
@@ -831,7 +838,8 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, 0, tempList);
+				
+				insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_FLOAT TK_ID ';'
@@ -844,7 +852,7 @@ COMANDO 	: E ';'
 				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, 0, tempList);
+				insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_BOOL TK_ID ';'
@@ -860,7 +868,7 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, 0, tempList);
+				insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 				
 				$$.traducao = $1.traducao + $2.traducao;
 			}
@@ -873,7 +881,7 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, 0, tempList);
+				insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 				$$.traducao = $1.traducao + $2.traducao;
 			}
 			| TK_TIPO_STRING TK_ID ';'
@@ -886,8 +894,53 @@ COMANDO 	: E ';'
 				value.temp = geraIdAleatorio();				
 				//insere id na tabela de simbolos
 				insertElement(pilha[indiceEscopoAtual], $2.label, value);
-				insereTempList(value.temp, value.type, 0, tempList);
+				insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 				$$.traducao = $1.traducao + $2.traducao;
+			}
+			| TK_TIPO_INT TK_ID '[' E ']' ';'
+			{
+				//Verica declaracao da variavel
+				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
+				
+				bool S4IsId;
+				SYMBOL_TYPE elementS4;
+				int indiceS4;
+				bool S4isInTemp;
+				
+				//Verificando a expressao
+				verificaExpressao($4, S4IsId, S4isInTemp, elementS4, indiceS4, pilha, tempList);
+
+				//quando é ID
+				if(S4IsId) if(elementS4.type != "int") yyerror("ERRO: índice inválido!");
+				
+				if(!S4IsId) if($4.tipo != "int") yyerror("ERRO: índice inválido!");
+					
+				
+				SYMBOL_TYPE value;
+				value.varName = $2.label;
+				value.type = "int";
+				value.temp = geraIdAleatorio();
+				value.isVect = true;
+
+				if(S4IsId){
+					cout << "TESTESSSSSSSS\n";
+					value.vectSize = elementS4.temp;
+				}
+				cout << "TESTESSSSSSSS " << $4.label << "\n"; 
+				if(!S4IsId) value.vectSize = $4.valorAtributo;
+
+				//insere id na tabela de simbolos
+				insertElement(pilha[indiceEscopoAtual], $2.label, value);
+				//VETOR
+				insereTempList(value.temp, value.type, 0, value.isVect, value.vectSize,  tempList);
+				
+
+				//Se é ID pega pela tabela de simbolos
+				if(S4IsId) $$.traducao = $1.traducao + $2.traducao;
+				//Se é ID pega pelo S4LABEL
+				if(!S4IsId) $$.traducao = $1.traducao + $2.traducao;
+				
+	
 			}
 			| TK_ID '=' TK_INT ';'
 			{
@@ -992,7 +1045,8 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + elementS3.temp + ";\n" +
 					"\t" + "if(" + elementS3.temp + ") " + "goto " + "FIM_IF" + idBloco + ";\n" +
@@ -1006,7 +1060,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + $3.label + ";\n" +
 					"\t" + "if(" + value.temp + ") " + "goto " + "FIM_IF" + idBloco + ";\n" +
@@ -1045,7 +1099,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + elementS3.temp + ";\n" +
 					"\t" + "if(" + elementS3.temp + ") " + "goto " + "INICIO_ELSE" + idElse + ";\n" +
@@ -1063,7 +1117,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + value.temp + " = !" + $3.label + ";\n" +
 					"\t" + "if(" + value.temp + ") " + "goto " + "INICIO_ELSE" + idElse + ";\n" +
@@ -1091,7 +1145,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = elementS3.type;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + "INICIO_WHILE" + idWhile + ":\n" +
 					"\t" + value.temp + " = !" + elementS3.temp + ";\n" +
@@ -1106,7 +1160,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $3.traducao + "\t" + "INICIO_WHILE" + idWhile + ";\n" +
 					"\t" + value.temp + " = !" + $3.label + ";\n" +
@@ -1146,7 +1200,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = elementS5.type;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = "\tINICIO_DOWHILE" + idWhile + ";\n" +
 					$2.traducao +
@@ -1162,7 +1216,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = $3.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 
 					$$.traducao = $2.traducao + "\t" + "INICIO_WHILE" + idWhile + ";\n" +
 					"\t" + value.temp + " = !" + $5.label + ";\n" +
@@ -1202,7 +1256,7 @@ COMANDO 	: E ';'
 					SYMBOL_TYPE value;
 					value.type = $7.tipo;
 					value.temp = geraIdAleatorio();
-					insereTempList(value.temp, value.type, 0, tempList);
+					insereTempList(value.temp, value.type, 0, false, "0",  tempList);
 					tkIDAtribuicao($$, $3, $5, pilha);
 					$$.traducao +=  $3.traducao + $7.traducao + "\t" + "INICIO_FOR" + idFor + ":\n" +
 					"\t" + value.temp + " = !" + $7.label + ";\n" +
@@ -1289,7 +1343,8 @@ E 			: E '+' E
 				SYMBOL_TYPE tempConvert;
 				tempConvert.temp = $$.label;
 				tempConvert.type = $$.tipo;
-				insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
+				insereTempList(tempConvert.temp, tempConvert.type, 0, false, "0",  tempList);
+				
 
 				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
 			}
@@ -1301,7 +1356,7 @@ E 			: E '+' E
 				SYMBOL_TYPE tempConvert;
 				tempConvert.temp = $$.label;
 				tempConvert.type = $$.tipo;
-				insereTempList(tempConvert.temp, tempConvert.type, 0, tempList);
+				insereTempList(tempConvert.temp, tempConvert.type, 0, false, "0",  tempList);
 
 				$$.traducao = $1.traducao + $2.traducao + "\t" + tempConvert.temp + " = " + "(" + $$.tipo + ")" + $2.label + ";\n";
 			}
@@ -1345,7 +1400,8 @@ E 			: E '+' E
 					$$.label = geraIdAleatorio();	
 					value.varName = $$.label;
 					value.type =  "int";
-					insereTempList(value.varName, value.type, 0, tempList);
+					
+					insereTempList(value.varName, value.type, 0, false, "0", tempList);
 					$$.traducao = $1.traducao + $3.traducao + "\t" + $$.label +  " = " +
 							$1.label + " % " + $3.label + ";\n";
 				}
@@ -1367,14 +1423,15 @@ E 			: E '+' E
 			{
 				$$.tipo = "int";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, 0, tempList);
+				$$.valorAtributo = $1.label;
+				insereTempList($$.label, $$.tipo, 0, false, "0",  tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_FLOAT
 			{
 				$$.tipo = "float";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, 0, tempList);
+				insereTempList($$.label, $$.tipo, 0, false, "0",  tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
 			}
 			| TK_TRUE
@@ -1382,7 +1439,7 @@ E 			: E '+' E
 				$$.tipo = "int";
 				$$.isBool = "bool";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, 0, tempList);
+				insereTempList($$.label, $$.tipo, 0, false, "0",  tempList);
 				$$.traducao = "\t" + $$.label + " = " + "1" + ";\n";
 			}
 			| TK_FALSE
@@ -1390,14 +1447,14 @@ E 			: E '+' E
 				$$.tipo = "int";
 				$$.isBool = "bool";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, 0, tempList);
+				insereTempList($$.label, $$.tipo, 0, false, "0",  tempList);
 				$$.traducao = "\t" + $$.label + " = " + "0" + ";\n";
 			}
 			| TK_CHAR
 			{
 				$$.tipo = "char";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, 0, tempList);
+				insereTempList($$.label, $$.tipo, 0, false, "0",  tempList);
 				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";	
 					
 			}
@@ -1406,7 +1463,7 @@ E 			: E '+' E
 				cout << "AAAAA\n";
 				$$.tipo = "string";
 				$$.label =  geraIdAleatorio();
-				insereTempList($$.label, $$.tipo, $1.label.size() - 1, tempList);
+				insereTempList($$.label, $$.tipo, $1.label.size() - 1, false, "0", tempList);
 				$$.traducao = "\t" + string("strcpy(") + $$.label + ", " +  $1.label + ")" + ";\n";		
 			}
 			| TK_ID
