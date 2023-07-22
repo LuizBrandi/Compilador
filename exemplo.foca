@@ -1,8 +1,10 @@
 int main()
 {
-  int a[10];
+  	int vetor[10];
 
 }
+
+if(isIndex)
 
 *Código Intermediario*
 int var0;  
@@ -15,4 +17,18 @@ int var1[var0];
 .
 .
 . 
-int var1[10];  
+int var0[10];  
+int var1;
+var1 = var0[5];
+
+
+SYMBOL_TYPE value;
+value.type = $7.tipo;
+value.temp = geraIdAleatorio();
+
+temp.varName = value.temp;
+	temp.type = value.type;
+	temp.stringSize = value.stringSize;
+	temp.isVect = value.isVect;
+	temp.vectSize = value.vectSize;
+	tempList.push_back(temp);

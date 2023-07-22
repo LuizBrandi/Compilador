@@ -5,10 +5,9 @@
 ESPACO [ \t]
 DIGITO [0-9]
 LETRA [A-Za-z_]
-
-
 DELIM {ESPACO}+
 NUM {DIGITO}+
+NUM2 {DIGITO}+
 REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
@@ -87,7 +86,7 @@ STRING \"([^\"\\]|\\.)*\"
 
 [<>]		{ return *yytext; }
 
-
+{NUM2}		{ yylval.label = yytext; return TK_INDEX; }
 {NUM}		{ yylval.label = yytext; return TK_INT; }
 {REAL}      { yylval.label = yytext; return TK_FLOAT; }
 {ID}		{ yylval.label = yytext; return TK_ID; }
