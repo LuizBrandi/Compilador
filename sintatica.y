@@ -48,6 +48,9 @@ stack<string> pilhaLoop;
 vector<SYMBOL_TYPE> tempList;
 vector<SYMBOL_TYPE> matrixList;
 
+//GLOBAL PARA CONTAGEM DE LINHAS
+int linha = 1;
+
 int yylex(void);
 void yyerror(string);
 
@@ -206,7 +209,7 @@ SYMBOL_TYPE retornaListaTemp(vector<SYMBOL_TYPE> list, string key){
 
 void verificaDeclaracaoPrevia(unordered_map<string, SYMBOL_TYPE> hash, string key){
 	if(findElement(hash, key)){
-		yyerror("\'" + key + "\'" + " já foi declarado\n");
+		yyerror("ERRO NA LINHA: " + to_string(linha+1) + " \'" + key + "\'" + " já foi declarado\n");
 	}
 }
 
@@ -658,7 +661,7 @@ void verificaExpressao(atributos& $, bool& isID, bool& isInTemp, SYMBOL_TYPE& el
 %token TK_VIRGULA TK_PRINT TK_READ	 
 %token TK_IF TK_ELSE
 %token TK_DO TK_WHILE TK_FOR TK_BREAK TK_SWITCH TK_CASE TK_DEFAULT TK_DP 
-%token TK_INDEX
+%token TK_INDEX TK_PULA_LINHA
 
 
 
@@ -692,6 +695,11 @@ BLOCO       : '{' BLOCO_INICIO COMANDOS BLOCO_FIM '}'
 COMANDOS	: COMANDO COMANDOS
 			{
 				$$.traducao =  $1.traducao + $2.traducao;
+				
+			}
+			| TK_PULA_LINHA
+			{
+				linha++;
 			}
 			|
 			{	
@@ -915,6 +923,7 @@ COMANDO 	: E ';'
 			}
 			| TK_TIPO_INT TK_ID '[' TK_INDEX ']' ';'
 			{
+				if(stoi($4.label) < 0 ) yyerror("ERRO: INDICE NEGATIVO");
 				//Verica declaracao da variavel
 				verificaDeclaracaoPrevia(pilha[indiceEscopoAtual], $2.label);
 				
@@ -925,7 +934,7 @@ COMANDO 	: E ';'
 				
 				//sinalizando que ele é usado como index do vetor
 				$4.isIndex = true;
-				cout << "___________" << $4.isIndex << "\n";
+				
 
 				//Verificando a expressao
 				// verificaExpressao($4, S4IsId, S4isInTemp, elementS4, indiceS4, pilha, tempList);
@@ -946,11 +955,11 @@ COMANDO 	: E ';'
 				value.isVect = true;
 
 				if(S4IsId){
-					cout << "é um idddddd\n";
+					
 					value.vectSize = elementS4.temp;
 				}
 
-				cout << "TESTESSSSSSSS " << $4.label << "\n"; 
+				
 				// if(!S4IsId) 
 				value.vectSize = $4.label;
 
@@ -1540,6 +1549,7 @@ E 			: E '+' E
 			}
 			| TK_ID '[' TK_INDEX ']'
 			{
+				if(stoi($3.label) < 0 ) yyerror("ERRO: INDICE NEGATIVO");
 				int indiceS1;
 				indiceS1 = buscaEscopo(pilha, $1.label);
 				
@@ -1552,9 +1562,10 @@ E 			: E '+' E
 				value.type = $$.tipo;
 				value.temp = $$.label;
 
+				if(stoi(pilha[indiceS1][$1.label].vectSize) - 1 < stoi($3.label) ) yyerror("ERRO: INDEX INVALIDO");
 				insereTempList(value,  tempList);
 
-				$$.traducao = "\t" + $$.label + " = " + $1.label + ";\n";
+				$$.traducao = "\t" + $$.label + " = " + $1.label + "[" + $3.label + "]" + ";\n";
 			}
 			| TK_ID
 			{

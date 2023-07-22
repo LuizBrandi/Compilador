@@ -12,11 +12,10 @@ REAL {NUM}+("."{NUM}+)?
 CHAR \'({LETRA}|{NUM})\'
 ID {LETRA}({LETRA}|{NUM})*
 STRING \"([^\"\\]|\\.)*\"
+PULA_LINHA [\\n]
 
 
 %%
-
-"\n"		{}
 
 {DELIM} 	{}
 
@@ -86,12 +85,13 @@ STRING \"([^\"\\]|\\.)*\"
 
 [<>]		{ return *yytext; }
 
-{NUM2}		{ yylval.label = yytext; return TK_INDEX; }
-{NUM}		{ yylval.label = yytext; return TK_INT; }
-{REAL}      { yylval.label = yytext; return TK_FLOAT; }
-{ID}		{ yylval.label = yytext; return TK_ID; }
-{CHAR}      { yylval.label = yytext; return TK_CHAR; }
-{STRING}      { yylval.label = yytext; return TK_STRING; }
+{NUM2}		 { yylval.label = yytext; return TK_INDEX; }
+{NUM}		 { yylval.label = yytext; return TK_INT; }
+{REAL}       { yylval.label = yytext; return TK_FLOAT; }
+{ID}		 { yylval.label = yytext; return TK_ID; }
+{CHAR}       { yylval.label = yytext; return TK_CHAR; }
+{STRING}     { yylval.label = yytext; return TK_STRING; }
+{PULA_LINHA} { yylval.label = yytext; return TK_PULA_LINHA; }
 .			{ *yytext; }
 
 %%

@@ -86,7 +86,8 @@ extern int yydebug;
     TK_CASE = 292,
     TK_DEFAULT = 293,
     TK_DP = 294,
-    TK_INDEX = 295
+    TK_INDEX = 295,
+    TK_PULA_LINHA = 296
   };
 #endif
 /* Tokens.  */
@@ -128,6 +129,7 @@ extern int yydebug;
 #define TK_DEFAULT 293
 #define TK_DP 294
 #define TK_INDEX 295
+#define TK_PULA_LINHA 296
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
