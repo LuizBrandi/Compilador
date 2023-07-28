@@ -92,6 +92,7 @@ PULA_LINHA [\\n]
 {CHAR}       { yylval.label = yytext; return TK_CHAR; }
 {STRING}     { yylval.label = yytext; return TK_STRING; }
 {PULA_LINHA} { yylval.label = yytext; return TK_PULA_LINHA; }
+
 .			{ *yytext; }
 
 %%
